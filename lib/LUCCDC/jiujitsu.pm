@@ -1,24 +1,33 @@
 package LUCCDC::jiujitsu;
+use LUCCDC::jiujitsu::Util::Arguments;
+use strictures;
 
 # ABSTRACT: CLI to manage Linux
 # VERSION
 
-use strictures 2;
+my @options = (
+    { flag => '-in',       val => '-', pat => qr/ \s* =? \s* (\S*) /xms },
+    { flag => '-out',      val => '-', pat => qr/ \s* =? \s* (\S*) /xms },
+    { flag => '-len',      val => 24,  pat => qr/ \s* =? \s* (\d+) /xms },
+    { flag => '--verbose', val => 0,   pat => qr/                  /xms },
+);
 
-use MooseX::App qw(Color Version Config);
+my %subcommands = ( 'ssh' =>, \&LUCCDC::jiujitsu::Commands::ssh::run );
 
-app_namespace 'LUCCDC::jiujitsu::Commands';
+my %meta_options = (
+    '--version' => sub { print "version"; exit; },
+    '--usage'   => sub { print "usage";   exit; },
+    '--help'    => sub { print "help";    exit; },
+    '--man'     => sub { print "man";     exit; },
+);
 
-option 'global_option' => (
-    is            => 'rw',
-    isa           => 'Bool',
-    documentation => q[Enable this to do fancy stuff],
-);    # Global option
-
-has 'private' => ( is => 'rw', );    # not exposed
+sub run {
+    my $cmdline = join " ", @ARGV;
+    my $core    = \&LUCCDC::jiujitsu::Util::Arguments::parser;
+    $core->( \@options, \%subcommands, \%meta_options )->($cmdline);
+}
 
 1;
-
 __END__
 
 =head1 DESCRIPTION
