@@ -123,6 +123,28 @@ let
       license = with lib.licenses; [ artistic1 gpl1Plus ];
     };
   };
+
+  NetDBus = buildPerlPackage {
+    pname = "Net-DBus";
+    version = "1.2.0";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/D/DA/DANBERR/Net-DBus-1.2.0.tar.gz";
+      hash = "sha256-56GsnvShI1s/29WIj4bDRxgjBkZ715q8mwdWpktEHLw=";
+    };
+    buildInputs = with perl540Packages; [ TestPod TestPodCoverage ];
+    nativeBuildInputs = with pkgs; [
+      pkg-config
+      dbus
+    ];
+    propagatedBuildInputs = [ perl540Packages.XMLTwig ];
+    meta = {
+      homepage = "http://www.freedesktop.org/wiki/Software/dbus";
+      description = "Extension for the DBus bindings";
+      license = with lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
+
+
 in
 [
   GetoptEuclid
@@ -131,4 +153,5 @@ in
   indirect
   multidimensional
   barewordfilehandles
+  NetDBus
 ]

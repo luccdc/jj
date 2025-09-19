@@ -3,7 +3,7 @@
 
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-25.05";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
   };
 
   outputs = inputs@{ flake-parts, self, ...}:
@@ -42,12 +42,21 @@
                   TryTiny
                   ModulePath
                   CPANPLUS
+                  FileGrep
+                  AppFatPacker
                   GetoptLongDescriptive
                   LogLog4perl
                   perlcritic
                   strictures
                 ]))
               ] ++ generatedPerlPackages;
+
+              # Local dev demands we extend PERL5LIB to include our local library.
+              # Will not work for flake builds.
+              # TODO Determine robust path-setting for final build.
+              shellHook = ''
+                export PERL5LIB="$(pwd)/lib/:$PERL5LIB"
+              '';
             };
       };
     };
