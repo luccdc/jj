@@ -17,59 +17,36 @@ Or search for it:
 `nix-generate-from-cpan.pl <cpan-pkg-name>`
 4. Add the resulting expression into the `let`-expression in `nix/perl.nix`, and add the name to the final list.
 
-# How to define a new command
-1. Is it a top-level command? 
-    - Yes? These go in ./lib/LUCCDC/jiujitsu/Commands.
-    - No? Put it in the appropriate subfolder. For example, `ssh service` lives in ./lib/LUCCDC/jiujitsu/Commands/ssh/.
-2. Use the standard boilerplate for a command:
-
-```perl
-package LUCCDC::jiujitsu::Commands::<your-command>;
-use MooseX::App::Command;
-
-use strictures 2;
-
-extends qw(LUCCDC::jiujitsu);    # Include global options
-# Default method, called by the containing app when the subcommand is used.
-sub run {
-    my ($self)    = @_;
-    # Do something
-}
-1; # Modules must return true, Perl makes the rules.
-```
-3. Add options or parameters 
-Options are passed with flags, such as `-e` or `--help`.
-
+# Argument Parsing
+Argument parsing uses the [Arguments](./lib/LUCCDC/jiujitsu/Util/Arguments.pm) module.
+A parser is a closure that can be called on a string representing the command-line.
+Each parser takes two arguments:
+- `options`: A list of hashes, each with four key-value pairs:
+  - `name`: The name of the option, to be used when accessing it in the arguments table.
+  - `flag`: The pattern that matches the flag for the option. Something like `--port|-p` would provide both a short and long flag.
+  - `val`: The default value for the option. Mandatory for now, will be optional later.
+  - `pat`: The pattern to match the value provided with the flag. 
+- `subcommands`: A hash whose keys are the command and whose values are the function to call. If you want a short option for a subcommand, add another entry to the hash.
 ``` perl
-option 'xyz' => (
-    is => 'rw',
-    isa => 'Str',
+my @options = (
+    {
+        name => 'port',
+        flag => '--port|-p',
+        val  => 22,
+        pat  => number_pat,
+    }
 );
-# Usage in the commandline: myapp --xyz <some-string>
-```
 
-Parameters are positional and not flags.
-
-```perl
-parameter 'name' => (
-    is            => 'rw',
-    isa           => 'Str',
+my %subcommands = (
+    'check'  => \&check,
+    '--help' => sub { print "ssh help"; exit; }
 );
-# Usage in the command line: myapp <name>
+my $toplevel_parser = parser( \@options, \%subcommands );
+my %arg = $toplevel_parser->($cmdline);
 ```
-
-Both options and parameters can be accessed via the `$self` object in `run` (from the boilerplate above).
-This object is a 
-[reference](https://perldoc.perl.org/perlref) 
-to a 
-[hash](https://www.perl.com/article/27/2013/6/16/Perl-hash-basics-create-update-loop-delete-and-sort/).
-
-You can access a given parameter or option with its name, for example:
-
-``` perl
-my $name = $self->{'name'};
-```
-
+The above exemplifies the creation and use of a parser.
+A parser closure will return a hash of the arguments, keyed to the names of options.
+If it encounters a subcommand, it will run that command and exit instead of returning.
 
 # Packaging Options
 - https://metacpan.org/pod/App::FatPacker
