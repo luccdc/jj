@@ -1,30 +1,35 @@
 package LUCCDC::jiujitsu;
-use LUCCDC::jiujitsu::Util::Arguments;
+use LUCCDC::jiujitsu::Util::Arguments qw(&parser);
+use LUCCDC::jiujitsu::Commands::ssh;
+use LUCCDC::jiujitsu::Commands::backup;
 use strictures;
 
 # ABSTRACT: CLI to manage Linux
 # VERSION
 
 my @options = (
-    { flag => '-in',       val => '-', pat => qr/ \s* =? \s* (\S*) /xms },
-    { flag => '-out',      val => '-', pat => qr/ \s* =? \s* (\S*) /xms },
-    { flag => '-len',      val => 24,  pat => qr/ \s* =? \s* (\d+) /xms },
-    { flag => '--verbose', val => 0,   pat => qr/                  /xms },
+    {
+        name => 'verbose',
+        flag => '--verbose',
+        val  => 0,
+        pat  => qr/                  /xms
+    },
 );
 
-my %subcommands = ( 'ssh' =>, \&LUCCDC::jiujitsu::Commands::ssh::run );
+my %subcommands = (
 
-my %meta_options = (
+    #    'ssh'       => \&LUCCDC::jiujitsu::Commands::ssh::run,
+    #    'backup'    => \&LUCCDC::jiujitsu::Commands::backup::run,
     '--version' => sub { print "version"; exit; },
     '--usage'   => sub { print "usage";   exit; },
     '--help'    => sub { print "help";    exit; },
-    '--man'     => sub { print "man";     exit; },
 );
+
+my $core = parser( \@options, \%subcommands );
 
 sub run {
     my $cmdline = join " ", @ARGV;
-    my $core    = \&LUCCDC::jiujitsu::Util::Arguments::parser;
-    $core->( \@options, \%subcommands, \%meta_options )->($cmdline);
+    $core->($cmdline);
 }
 
 1;
