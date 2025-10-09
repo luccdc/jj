@@ -1,8 +1,29 @@
 package LUCCDC::jiujitsu::Util::Arguments;
-use LUCCDC::jiujitsu::Commands::ssh;
+use Exporter;
+use LUCCDC::jiujitsu::Util::Logging;
+
+use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
+$VERSION     = 1.00;
+@ISA         = qw(Exporter);
+@EXPORT      = ();
+@EXPORT_OK   = qw(parser number_pat string_pat);
+%EXPORT_TAGS = (
+    DEFAULT  => \@EXPORT_OK,
+    patterns => [qw(number_pat string_pat)]
+
+    #Both    => [qw(&func1 &func2)]
+);
 
 # TODO Enable during testing VVV
 use strictures;
+
+sub number_pat {
+    return qr/ ([0-9]*) /xms;
+}
+
+sub string_pat {
+    return qr/ (\S*) /xms;
+}
 
 sub parser {
 
@@ -12,7 +33,7 @@ sub parser {
     my %meta_option = %{$meta_option_ref};
     my %subcommand  = %{$subcommand_ref};
 
-    my %arg = map { $_->{flag} => $_->{val} } @options;
+    my %arg = map { $_->{name} => $_->{val} } @options;
 
     # Master regex for meta and subcommands
     my $meta_option_or_subcommand = join '|', reverse sort keys %meta_option,
@@ -27,7 +48,7 @@ sub parser {
 
             # Attempt to match a meta option or subcommand.
             if ( my ($meta) =
-                $cmdline =~ m/^ \s* ($meta_option_or_subcommand) \b /gcxms )
+                $cmdline =~ m/^ \s* ($meta_option_or_subcommand)\b /gcxms )
             {
                 if ( my $m = $meta_option{$meta} ) {
                     $m->();
@@ -37,7 +58,7 @@ sub parser {
   # If we've matched a command, we do not need to continue processing arguments.
   # Pass the rest of the line to the subcommand and stop.
                     $subcommand{$meta}->( substr( $cmdline, pos($cmdline) ) );
-                    exit;
+                    return;
                 }
                 next ARG;
             }
@@ -46,21 +67,26 @@ sub parser {
             for my $opt_ref (@options) {
                 if ( my ($val) =
                     $cmdline =~
-                    m/\G \s* $opt_ref->{flag} $opt_ref->{pat} /gcxms )
+m/\G \s* (?: $opt_ref->{flag} ) \s* =? \s* $opt_ref->{pat} /gcxms
+                  )
                 {
                     # And, if so, storing the value and moving on...
-                    $arg{ $opt_ref->{flag} } = $val;
+                    die error(
+"Mismatched argument type for option $opt_ref->{name}.\nArgument must match $opt_ref->{pat}."
+                    ) unless $val;
+                    $arg{ $opt_ref->{name} } = $val;
                     next ARG;
                 }
             }
 
             # Report unknown flags.
-            my ($unknown) = $cmdline =~ m/ (\S*) /xms;
-            die "Unknown cmdline flag: $unknown";
+            my ($unknown) = $cmdline =~ m/ \s* (\S*) /xms;
+            die error("Unknown cmdline flag: $unknown");
         }
 
-        print $arg{'-in'};
+        return %arg;
     };
+
     return $parse;
 }
 
