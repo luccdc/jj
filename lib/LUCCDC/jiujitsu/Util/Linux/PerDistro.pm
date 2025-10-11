@@ -2,7 +2,7 @@ package LUCCDC::jiujitsu::Util::Linux::PerDistro;
 use Symbol qw( gensym );
 
 use Exporter qw(import);
-our @EXPORT_OK = qw(&rhel_or_debian_do &platform);
+our @EXPORT_OK = qw(rhel_or_debian_do rhel_or_debian_return platform);
 
 {
     my %os_release_vars = ();
@@ -44,6 +44,17 @@ sub rhel_or_debian_do {
     else {
         return $debian_do->(@args_list);
     }
+}
+
+sub rhel_or_debian_return {
+    my ( $rhel_return, $debian_return, ) = @_;
+    if ( platform() == "rhel" ) {
+        return $rhel_return;
+    }
+    else {
+        return $debian_return;
+    }
+
 }
 
 1;
