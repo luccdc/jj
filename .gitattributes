@@ -1,0 +1,5 @@
+.git* export-ignore
+Vagrantfile export-ignore
+flake.* export-ignore
+nix export-ignore
+.envrc export-ignore
