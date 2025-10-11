@@ -47,7 +47,6 @@
                   GetoptLongDescriptive
                   LogLog4perl
                   perlcritic
-                  strictures
                 ]))
               ] ++ generatedPerlPackages;
 

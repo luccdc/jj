@@ -2,7 +2,6 @@ package LUCCDC::jiujitsu;
 use LUCCDC::jiujitsu::Util::Arguments qw(&parser);
 use LUCCDC::jiujitsu::Commands::ssh;
 use LUCCDC::jiujitsu::Commands::backup;
-use strictures;
 
 # ABSTRACT: CLI to manage Linux
 # VERSION

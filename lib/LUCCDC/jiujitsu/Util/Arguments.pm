@@ -15,7 +15,6 @@ $VERSION     = 1.00;
 );
 
 # TODO Enable during testing VVV
-use strictures;
 
 sub number_pat {
     return qr/ ([0-9]*) /xms;

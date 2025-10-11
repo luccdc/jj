@@ -1,5 +1,4 @@
 package LUCCDC::jiujitsu::Util::Linux::Permissions;
-use strictures 2;
 
 use File::Grep qw( fgrep );
 use Carp;
