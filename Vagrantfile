@@ -17,16 +17,16 @@ SCRIPT
 Vagrant.configure("2") do |config|
 
 
-  config.vm.define "rhel6" do |rocky|
-    rocky.vm.box = "rhel_6"
-    #rocky.vm.box_url = "https://vagrantboxes.lucyber.team/rocky_9.json"
-    rocky.vm.box_url = "file:///home/judah/20-29-school/24-ccdc/17-packer-templates/artifacts/vagrant/rhel_6.json"
-    rocky.vm.synced_folder ".", "/vagrant", disabled: true
-    rocky.vm.synced_folder "./", "/jj"
-    rocky.vm.provision "shell", inline: $set_environment_variables, run: "always"
-    rocky.vm.network "private_network", ip: "192.168.56.48"
-    rocky.vm.ssh.password "Chiapet1!"
-  end
+  # config.vm.define "rhel6" do |rocky|
+  #   rocky.vm.box = "rhel_6"
+  #   #rocky.vm.box_url = "https://vagrantboxes.lucyber.team/rocky_9.json"
+  #   rocky.vm.box_url = "file:///home/judah/20-29-school/24-ccdc/17-packer-templates/artifacts/vagrant/rhel_6.json"
+  #   rocky.vm.synced_folder ".", "/vagrant", disabled: true
+  #   rocky.vm.synced_folder "./", "/jj"
+  #   rocky.vm.provision "shell", inline: $set_environment_variables, run: "always"
+  #   rocky.vm.network "private_network", ip: "192.168.56.48"
+  #   rocky.vm.ssh.password "Chiapet1!"
+  # end
 
 
   config.vm.define "rocky9" do |rocky|
@@ -34,6 +34,8 @@ Vagrant.configure("2") do |config|
     rocky.vm.box_url = "https://vagrantboxes.lucyber.team/rocky_9.json"
     rocky.vm.provision "shell", inline: $set_environment_variables, run: "always"
     rocky.vm.synced_folder ".", "/vagrant", disabled: true
+    rocky.vm.synced_folder "./bin", "/jj/bin"
+    rocky.vm.synced_folder "./lib", "/jj/lib"
     rocky.vm.network "private_network", ip: "192.168.56.48"
   end
 
