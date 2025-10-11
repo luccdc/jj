@@ -19,9 +19,10 @@ my %subcommands = (
 
     #    'ssh'       => \&LUCCDC::jiujitsu::Commands::ssh::run,
     #    'backup'    => \&LUCCDC::jiujitsu::Commands::backup::run,
+    'help'      => \&help,
     '--version' => sub { print "version"; exit; },
     '--usage'   => sub { print "usage";   exit; },
-    '--help'    => sub { print "help";    exit; },
+    '--help'    => \&help,
 );
 
 my $core = parser( \@options, \%subcommands );
@@ -29,6 +30,20 @@ my $core = parser( \@options, \%subcommands );
 sub run {
     my $cmdline = join " ", @ARGV;
     $core->($cmdline);
+
+    help();
+}
+
+sub help {
+    print "Jiu-Jitsu: Grapple your Linux systems.\n\n";
+
+    print "[Commands]\n";
+    print "\t", join( "\n\t", sort grep( !/^-/, keys %subcommands ) ), "\n";
+
+    print "[Other]\n";
+    print "\t", join( "\n\t", sort grep( /^-/, keys %subcommands ) ), "\n";
+
+    exit;
 }
 
 1;
