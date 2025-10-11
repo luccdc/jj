@@ -2,6 +2,8 @@ package LUCCDC::jiujitsu;
 use LUCCDC::jiujitsu::Util::Arguments qw(&parser);
 use LUCCDC::jiujitsu::Commands::ssh;
 use LUCCDC::jiujitsu::Commands::backup;
+use LUCCDC::jiujitsu::Commands::useradd;
+use LUCCDC::jiujitsu::Commands::ports;
 
 # ABSTRACT: CLI to manage Linux
 # VERSION
@@ -17,8 +19,10 @@ my @options = (
 
 my %subcommands = (
 
-    #    'ssh'       => \&LUCCDC::jiujitsu::Commands::ssh::run,
-    #    'backup'    => \&LUCCDC::jiujitsu::Commands::backup::run,
+    'ssh'       => \&LUCCDC::jiujitsu::Commands::ssh::run,
+    'ports'     => \&LUCCDC::jiujitsu::Commands::ports::run,
+    'backup'    => \&LUCCDC::jiujitsu::Commands::backup::run,
+    'useradd'   => \&LUCCDC::jiujitsu::Commands::useradd::run,
     'help'      => \&help,
     '--version' => sub { print "version"; exit; },
     '--usage'   => sub { print "usage";   exit; },
