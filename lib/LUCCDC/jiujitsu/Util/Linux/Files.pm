@@ -5,7 +5,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 $VERSION     = 1.00;
 @ISA         = qw(Exporter);
 @EXPORT      = ();
-@EXPORT_OK   = qw(fgrep);
+@EXPORT_OK   = qw(fgrep slurp_to_array);
 %EXPORT_TAGS = (
   DEFAULT => \@EXPORT_OK,
 
@@ -25,4 +25,15 @@ sub fgrep {
       return $line;
     }
   }
+}
+
+sub slurp_to_array {
+  my ($filename) = @_;
+
+  my $file = gensym();
+  open $file, $filename;
+
+  my @array = <$file>;
+
+  return @array;
 }

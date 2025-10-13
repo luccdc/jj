@@ -1,5 +1,6 @@
 package LUCCDC::jiujitsu::Commands::ports;
-use LUCCDC::jiujitsu::Util::Arguments qw(&parser);
+use LUCCDC::jiujitsu::Util::Arguments   qw(&parser);
+use LUCCDC::jiujitsu::Util::Linux::Proc qw(net_tcp);
 my @options = ();
 
 my %subcommands = ();
@@ -12,23 +13,25 @@ sub run {
 
     my %arg = $toplevel_parser->($cmdline);
 
-    print $arg{'port'};
+    map( format_tcp_line( @{$_} ), net_tcp() );
 
-    for my $line ( grep( /LISTEN/, `ss -peanuts` ) ) {
-        my ( $netid, $state, $recvq, $sendq, $local, $peer, $process ) =
-          split( /\s+/, $line );
+    exit;
+}
 
+sub format_tcp_line {
+    my (
+        $head,     $loc_addr, $loc_port, $rem_addr, $rem_port,
+        $tcpstate, $inode,    $pid,      $cmdline
+    ) = @_;
+
+    if ( $tcpstate eq "TCP_LISTEN" ) {
         format PORT =
-@<<<<@<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-$netid,               $local,   $process
+ @<<<@>>>>>>>>>>>>>>>>:@<<<<<<<<<<<<<<<<<@<<<<<<<<<<@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+ "tcp",               $loc_addr, $loc_port,    $pid, $cmdline
 .
 
         select(STDOUT);
         $~ = PORT;
         write;
-
     }
-
-    # Do something
-    exit;
 }
