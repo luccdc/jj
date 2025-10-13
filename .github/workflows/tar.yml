@@ -5,4 +5,4 @@ jobs:
   Create-Tarball:
     runs-on: ubuntu-latest
     steps:
-      - run: git archive --format=tar.gz -o jj.tgz
+      - run: git archive --format=tar.gz -o jj.tgz HEAD
