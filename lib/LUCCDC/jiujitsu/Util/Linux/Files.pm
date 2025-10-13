@@ -18,6 +18,11 @@ sub fgrep {
   my $file = gensym();
 
   open $file, '<', $filename
-    or die "Can't open '$filename': $OS_ERROR";
+    or die "Can't open '$filename'";
 
+  for my $line (<$file>) {
+    if ( $line =~ $regex ) {
+      return $line;
+    }
+  }
 }
