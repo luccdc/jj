@@ -4,6 +4,7 @@ use LUCCDC::jiujitsu::Commands::ssh;
 use LUCCDC::jiujitsu::Commands::backup;
 use LUCCDC::jiujitsu::Commands::useradd;
 use LUCCDC::jiujitsu::Commands::ports;
+use LUCCDC::jiujitsu::Commands::stat;
 
 # ABSTRACT: CLI to manage Linux
 # VERSION
@@ -23,6 +24,7 @@ my %subcommands = (
     'ports'     => \&LUCCDC::jiujitsu::Commands::ports::run,
     'backup'    => \&LUCCDC::jiujitsu::Commands::backup::run,
     'useradd'   => \&LUCCDC::jiujitsu::Commands::useradd::run,
+    'stat'      => \&LUCCDC::jiujitsu::Commands::stat::run,
     'help'      => \&help,
     '--version' => sub { print "version"; exit; },
     '--usage'   => sub { print "usage";   exit; },
@@ -51,13 +53,3 @@ sub help {
 }
 
 1;
-__END__
-
-=head1 DESCRIPTION
- This command-line interface helps the Liberty CCDC Team to troubleshoot Linux systems.
-
-=head1 USAGE
-
-
-=head1 AUTHOR
- Judah Sotomayor
