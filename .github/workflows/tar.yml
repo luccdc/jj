@@ -1,9 +1,0 @@
-name: Create Tarball
-run-name: Creating release tarball...
-on: [push]
-jobs:
-  Create-Tarball:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - run: git archive --format=tar.gz -o jj.tgz HEAD

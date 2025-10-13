@@ -1,0 +1,18 @@
+name: Release
+run-name: Creating release tarball...
+on:
+  push:
+    branches:
+      - release
+jobs:
+  Create-Tarball:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Create tarball
+        run: git archive --format=tar.gz -o jj.tgz HEAD
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: jj.tgz
