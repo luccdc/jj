@@ -17,5 +17,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: jj.tgz
-        permissions:
-          contents: write
+permissions:
+  contents: write
