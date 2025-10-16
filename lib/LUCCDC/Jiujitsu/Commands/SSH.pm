@@ -1,12 +1,12 @@
-package LUCCDC::jiujitsu::Commands::SSH;
+package LUCCDC::Jiujitsu::Commands::SSH;
 use strictures 2;
-use LUCCDC::jiujitsu::Util::Logging;
+use LUCCDC::Jiujitsu::Util::Logging;
 
-use LUCCDC::jiujitsu::Util::Arguments qw(&parser :patterns);
+use LUCCDC::Jiujitsu::Util::Arguments qw(&parser :patterns);
 
-use LUCCDC::jiujitsu::Util::systemd qw(&check_service);
+use LUCCDC::Jiujitsu::Util::systemd qw(&check_service);
 
-use LUCCDC::jiujitsu::Util::Linux::PerDistro
+use LUCCDC::Jiujitsu::Util::Linux::PerDistro
   qw(rhel_or_debian_do rhel_or_debian_return platform);
 
 sub local_ip {

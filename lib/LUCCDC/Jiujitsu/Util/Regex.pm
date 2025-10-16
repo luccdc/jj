@@ -1,4 +1,4 @@
-package LUCCDC::jiujitsu::Util::Regex;
+package LUCCDC::Jiujitsu::Util::Regex;
 use strictures 2;
 use parent qw(Exporter);
 

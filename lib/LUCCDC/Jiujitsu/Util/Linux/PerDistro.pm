@@ -1,4 +1,4 @@
-package LUCCDC::jiujitsu::Util::Linux::PerDistro;
+package LUCCDC::Jiujitsu::Util::Linux::PerDistro;
 use strictures 2;
 use Symbol qw( gensym );
 

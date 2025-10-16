@@ -1,4 +1,4 @@
-package LUCCDC::jiujitsu::Util::Linux::Files;
+package LUCCDC::Jiujitsu::Util::Linux::Files;
 use strictures 2;
 use parent qw(Exporter);
 use Symbol qw( gensym );

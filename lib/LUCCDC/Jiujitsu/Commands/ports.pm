@@ -1,7 +1,7 @@
-package LUCCDC::jiujitsu::Commands::ports;
+package LUCCDC::Jiujitsu::Commands::ports;
 use strictures 2;
-use LUCCDC::jiujitsu::Util::Arguments   qw(&parser);
-use LUCCDC::jiujitsu::Util::Linux::Proc qw(net_tcp);
+use LUCCDC::Jiujitsu::Util::Arguments   qw(&parser);
+use LUCCDC::Jiujitsu::Util::Linux::Proc qw(net_tcp);
 my @options = ();
 
 my %subcommands = ();

@@ -1,10 +1,10 @@
-package LUCCDC::jiujitsu::Util::Linux::Proc;
+package LUCCDC::Jiujitsu::Util::Linux::Proc;
 use Carp;
 use strictures 2;
 use parent                               qw(Exporter);
 use Symbol                               qw( gensym );
-use LUCCDC::jiujitsu::Util::Linux::Files qw(slurp_to_array);
-use LUCCDC::jiujitsu::Util::Regex        qw(%RX);
+use LUCCDC::Jiujitsu::Util::Linux::Files qw(slurp_to_array);
+use LUCCDC::Jiujitsu::Util::Regex        qw(%RX);
 use File::Basename;
 use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS);
 $VERSION     = 1.00;

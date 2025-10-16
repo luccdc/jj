@@ -1,7 +1,7 @@
-package LUCCDC::jiujitsu::Commands::stat;
+package LUCCDC::Jiujitsu::Commands::stat;
 use strictures 2;
-use LUCCDC::jiujitsu::Util::Arguments    qw(&parser);
-use LUCCDC::jiujitsu::Util::Linux::Files qw(fgrep);
+use LUCCDC::Jiujitsu::Util::Arguments    qw(&parser);
+use LUCCDC::Jiujitsu::Util::Linux::Files qw(fgrep);
 my @options = ();
 
 my %subcommands = ( "cpu" => \&cpu );

@@ -1,4 +1,4 @@
-package LUCCDC::jiujitsu::Util::systemd;
+package LUCCDC::Jiujitsu::Util::systemd;
 use strictures 2;
 use parent qw(Exporter);
 

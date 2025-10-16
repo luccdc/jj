@@ -1,4 +1,4 @@
-package LUCCDC::jiujitsu::Util::Logging;
+package LUCCDC::Jiujitsu::Util::Logging;
 use strictures 2;
 use parent qw(Exporter);
 

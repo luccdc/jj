@@ -1,8 +1,8 @@
-package LUCCDC::jiujitsu::Commands::useradd;
+package LUCCDC::Jiujitsu::Commands::useradd;
 use strictures 2;
-use LUCCDC::jiujitsu::Util::Arguments    qw(&parser :patterns);
-use LUCCDC::jiujitsu::Util::Linux::Files qw(fgrep);
-use LUCCDC::jiujitsu::Util::Linux::PerDistro
+use LUCCDC::Jiujitsu::Util::Arguments    qw(&parser :patterns);
+use LUCCDC::Jiujitsu::Util::Linux::Files qw(fgrep);
+use LUCCDC::Jiujitsu::Util::Linux::PerDistro
   qw(rhel_or_debian_do rhel_or_debian_return platform);
 
 my @paths_to_save = (
