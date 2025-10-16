@@ -25,8 +25,8 @@ my %subcommands = ( '--help' => \&help );
 my $toplevel_parser = parser( \@options, \%subcommands );
 
 sub run {
-    my $cmdline = join " ", @_;
-    my %arg     = $toplevel_parser->($cmdline);
+    my ($cmdline) = @_;
+    my %arg = $toplevel_parser->($cmdline);
     $arg{"paths"} =~ s/,/ /;
 
     my $SUDO_GROUP = rhel_or_debian_return( "wheel", "sudo" );

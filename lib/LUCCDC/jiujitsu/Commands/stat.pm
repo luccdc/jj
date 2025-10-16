@@ -10,7 +10,7 @@ my $toplevel_parser = parser( \@options, \%subcommands );
 
 sub run {
 
-    my $cmdline = join " ", @_;
+    my ($cmdline) = @_;
 
     my %arg = $toplevel_parser->($cmdline);
 
