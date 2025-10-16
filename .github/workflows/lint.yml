@@ -17,7 +17,7 @@ jobs:
             - name: Install Perlcritic
               run: |
                 sudo apt-get update
-                sudo apt-get install perlcritic
+                sudo apt-get install libperl-critic-perl
 
             - name: Perlcritic Check
               run: |
