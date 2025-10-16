@@ -52,8 +52,18 @@ sub net_tcp {
             $stat,     $tx_queue, $rx_queue, $tr,       $tmwhen,
             $retrnsmt, $uid,      $timeout,  $inode,    $tail
           )
-          = $line =~
-/^\s*([0-9]+):\s ([0-9A-F]{8}):([0-9A-F]{4}) \s+ ([0-9A-F]{8}):([0-9A-F]{4}) \s+ ([0-9A-F]{2}) \s+ ([0-9A-F]{8}):([0-9A-F]{8}) \s+ ([0-9A-F]{2}):([0-9A-F]{8}) \s+ ([0-9A-F]{8}) \s+ ([0-9]+) \s+ ([0-9]+) \s+ ([0-9]+) (.*)/x;
+          = $line =~ m{ ^\s*
+                        ($RX{dec}): \s+
+                        ($RX{hex8}):($RX{hex4}) \s+
+                        ($RX{hex8}):($RX{hex4}) \s+
+                        ($RX{hex2}) \s+
+                        ($RX{hex8}):($RX{hex8}) \s+
+                        ($RX{hex2}):($RX{hex8}) \s+
+                        ($RX{hex8}) \s+
+                        ($RX{dec}) \s+
+                        ($RX{dec}) \s+
+                        ($RX{dec}) (.*)
+                }xms;
 
         if ( hex($stat) == 0 ) {
             print STDERR $line, "\n";
