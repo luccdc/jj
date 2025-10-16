@@ -25,4 +25,7 @@ sub cpu {
 
     my $usage = ( $user + $system ) * 100 / ( $user + $system + $idle );
     printf( "%.5f%\n", $usage );
+    return $usage;
 }
+
+1;

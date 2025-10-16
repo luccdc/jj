@@ -14,11 +14,16 @@ our @EXPORT_OK = qw(rhel_or_debian_do rhel_or_debian_return platform);
             my $file = gensym();
             open $file, '<', "/etc/os-release"
               or die "Can't open /etc/os-release.";
+            my @lines = <$file>;
+            close $file;
 
-            while ( my $line = <$file> ) {
+            for my $line (@lines) {
                 my ( $varname, $value ) = $line =~ /([^=]+)=(.+)/;
-                $os_release_vars{$varname} = $value;
+                if ($varname) {
+                    $os_release_vars{$varname} = $value;
+                }
             }
+
         }
 
         return %os_release_vars;
@@ -40,16 +45,16 @@ sub rhel_or_debian_do {
     my ( $rhel_do, $debian_do, ) = @_;
 
     if ( platform() == "rhel" ) {
-        return $rhel_do->(@args_list);
+        return $rhel_do->();
     }
     else {
-        return $debian_do->(@args_list);
+        return $debian_do->();
     }
 }
 
 sub rhel_or_debian_return {
     my ( $rhel_return, $debian_return, ) = @_;
-    if ( platform() == "rhel" ) {
+    if ( platform() eq "rhel" ) {
         return $rhel_return;
     }
     else {

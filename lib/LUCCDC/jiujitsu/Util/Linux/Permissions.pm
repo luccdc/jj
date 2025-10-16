@@ -20,6 +20,7 @@ sub get_local_sudo_group {
 
 sub require_sudo {
     croak "This command requires sudo." if $<;
+    return;
 }
 
 1;

@@ -13,7 +13,7 @@ sub run {
 
     my %arg = $toplevel_parser->($cmdline);
 
-    map( format_tcp_line( @{$_} ), net_tcp() );
+    map { format_tcp_line( @{$_} ) } net_tcp();
 
     exit;
 }
@@ -30,8 +30,10 @@ sub format_tcp_line {
  "tcp",               $loc_addr, $loc_port,    $pid, $cmdline
 .
 
-        select(STDOUT);
-        $~ = PORT;
+        local $~ = qw( PORT );
         write;
     }
+    return;
 }
+
+1;

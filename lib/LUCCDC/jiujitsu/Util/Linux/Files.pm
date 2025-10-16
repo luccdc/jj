@@ -20,21 +20,25 @@ sub fgrep {
 
   open $file, '<', $filename
     or die "Can't open '$filename'";
+  my @lines = <$file>;
+  close $file or die "Can't close '$filename'";
 
-  for my $line (<$file>) {
+  for my $line (@lines) {
     if ( $line =~ $regex ) {
       return $line;
     }
   }
+  return;
 }
 
 sub slurp_to_array {
   my ($filename) = @_;
 
-  my $file = gensym();
-  open $file, $filename;
+  open my $file2, '<', $filename or die "Can't open '$filename'";
+  my @array = <$file2>;
 
-  my @array = <$file>;
-
+  close $file2;
   return @array;
 }
+
+1;
