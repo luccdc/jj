@@ -1,4 +1,5 @@
 package LUCCDC::jiujitsu::Commands::stat;
+use strictures 2;
 use LUCCDC::jiujitsu::Util::Arguments    qw(&parser);
 use LUCCDC::jiujitsu::Util::Linux::Files qw(fgrep);
 my @options = ();

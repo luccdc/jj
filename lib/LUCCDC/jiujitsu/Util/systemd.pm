@@ -1,4 +1,5 @@
 package LUCCDC::jiujitsu::Util::systemd;
+use strictures 2;
 use Exporter;
 
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);

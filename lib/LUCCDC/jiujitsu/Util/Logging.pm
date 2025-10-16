@@ -1,4 +1,5 @@
 package LUCCDC::jiujitsu::Util::Logging;
+use strictures 2;
 
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 $VERSION = 1.00;

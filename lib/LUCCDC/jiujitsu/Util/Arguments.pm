@@ -1,4 +1,5 @@
 package LUCCDC::jiujitsu::Util::Arguments;
+use strictures 2;
 use Exporter;
 use LUCCDC::jiujitsu::Util::Logging;
 

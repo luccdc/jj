@@ -1,4 +1,5 @@
 package LUCCDC::jiujitsu::Util::Linux::Proc;
+use strictures 2;
 use Symbol                               qw( gensym );
 use LUCCDC::jiujitsu::Util::Linux::Files qw(slurp_to_array);
 use File::Basename;

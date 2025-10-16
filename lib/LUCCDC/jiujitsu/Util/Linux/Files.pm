@@ -1,4 +1,5 @@
 package LUCCDC::jiujitsu::Util::Linux::Files;
+use strictures 2;
 use Symbol qw( gensym );
 
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);

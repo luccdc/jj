@@ -1,4 +1,5 @@
 package LUCCDC::jiujitsu;
+use strictures 2;
 use LUCCDC::jiujitsu::Util::Arguments qw(&parser);
 use LUCCDC::jiujitsu::Commands::ssh;
 use LUCCDC::jiujitsu::Commands::backup;
