@@ -1,0 +1,23 @@
+name: Lint
+
+on:
+    push:
+        branches: ['*']
+    pull_request:
+        branches: ['*']
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+
+            - name: Install Perlcritic
+              run: |
+                  apt install perlcritic -y
+
+            - name: Perlcritic Check
+              run: |
+                  perlcritic --stern lib/LUCCDC/Jiujitsu
