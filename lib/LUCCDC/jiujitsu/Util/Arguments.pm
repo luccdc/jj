@@ -1,12 +1,11 @@
 package LUCCDC::jiujitsu::Util::Arguments;
 use strictures 2;
-use Exporter;
+use parent qw(Exporter);
+
 use LUCCDC::jiujitsu::Util::Logging;
 
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
+use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS);
 $VERSION     = 1.00;
-@ISA         = qw(Exporter);
-@EXPORT      = ();
 @EXPORT_OK   = qw(parser number_pat string_pat);
 %EXPORT_TAGS = (
     DEFAULT  => \@EXPORT_OK,

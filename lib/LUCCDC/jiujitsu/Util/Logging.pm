@@ -1,10 +1,10 @@
 package LUCCDC::jiujitsu::Util::Logging;
 use strictures 2;
+use parent qw(Exporter);
 
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
+use vars qw($VERSION @EXPORT @EXPORT_OK %EXPORT_TAGS);
 $VERSION = 1.00;
-@ISA     = qw(Exporter);
-@EXPORT  = qw(error warning log);
+@EXPORT  = qw(error warning message);
 
 #@EXPORT_OK   = qw(error warn log);
 %EXPORT_TAGS = ( DEFAULT => \@EXPORT_OK, );
@@ -28,7 +28,7 @@ sub warning {
 
 }
 
-sub log {
+sub message {
     my ($message) = @_;
     return $message;
 

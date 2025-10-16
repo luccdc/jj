@@ -1,12 +1,11 @@
 package LUCCDC::jiujitsu::Util::Linux::Proc;
 use strictures 2;
+use parent                               qw(Exporter);
 use Symbol                               qw( gensym );
 use LUCCDC::jiujitsu::Util::Linux::Files qw(slurp_to_array);
 use File::Basename;
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
+use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS);
 $VERSION     = 1.00;
-@ISA         = qw(Exporter);
-@EXPORT      = ();
 @EXPORT_OK   = qw(net_tcp map_sockets_to_processes);
 %EXPORT_TAGS = (
     DEFAULT => \@EXPORT_OK,
