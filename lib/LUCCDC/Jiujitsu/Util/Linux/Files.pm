@@ -3,9 +3,8 @@ use strictures 2;
 use parent qw(Exporter);
 use Symbol qw( gensym );
 
-use vars qw($VERSION @EXPORT @EXPORT_OK %EXPORT_TAGS);
+use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS);
 $VERSION     = 1.00;
-@EXPORT      = ();
 @EXPORT_OK   = qw(fgrep slurp_to_array);
 %EXPORT_TAGS = (
   DEFAULT => \@EXPORT_OK,

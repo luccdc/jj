@@ -2,11 +2,9 @@ package LUCCDC::Jiujitsu::Util::Logging;
 use strictures 2;
 use parent qw(Exporter);
 
-use vars qw($VERSION @EXPORT @EXPORT_OK %EXPORT_TAGS);
-$VERSION = 1.00;
-@EXPORT  = qw(error warning message);
-
-#@EXPORT_OK   = qw(error warn log);
+use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS);
+$VERSION     = 1.00;
+@EXPORT_OK   = qw(error warning message);
 %EXPORT_TAGS = ( DEFAULT => \@EXPORT_OK, );
 
 my $black   = "\033[0;30m";
