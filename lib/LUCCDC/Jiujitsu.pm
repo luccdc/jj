@@ -5,6 +5,7 @@ use LUCCDC::Jiujitsu::Util::Arguments qw(&parser);
 use LUCCDC::Jiujitsu::Commands::SSH;
 use LUCCDC::Jiujitsu::Commands::backup;
 use LUCCDC::Jiujitsu::Commands::useradd;
+use LUCCDC::Jiujitsu::Commands::enum;
 use LUCCDC::Jiujitsu::Commands::ports;
 use LUCCDC::Jiujitsu::Commands::stat;
 use LUCCDC::Jiujitsu::Commands::daemon;
@@ -24,6 +25,7 @@ my @options = (
 my %subcommands = (
 
     'ssh'       => \&LUCCDC::Jiujitsu::Commands::SSH::run,
+    'enum'      => \&LUCCDC::Jiujitsu::Commands::enum::run,
     'ports'     => \&LUCCDC::Jiujitsu::Commands::ports::run,
     'backup'    => \&LUCCDC::Jiujitsu::Commands::backup::run,
     'useradd'   => \&LUCCDC::Jiujitsu::Commands::useradd::run,
