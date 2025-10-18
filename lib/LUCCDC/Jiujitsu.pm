@@ -8,7 +8,6 @@ use LUCCDC::Jiujitsu::Commands::useradd;
 use LUCCDC::Jiujitsu::Commands::enum;
 use LUCCDC::Jiujitsu::Commands::ports;
 use LUCCDC::Jiujitsu::Commands::stat;
-use LUCCDC::Jiujitsu::Commands::daemon;
 
 # ABSTRACT: CLI to manage Linux
 # VERSION
@@ -30,7 +29,6 @@ my %subcommands = (
     'backup'    => \&LUCCDC::Jiujitsu::Commands::backup::run,
     'useradd'   => \&LUCCDC::Jiujitsu::Commands::useradd::run,
     'stat'      => \&LUCCDC::Jiujitsu::Commands::stat::run,
-    'procwatch' => \&LUCCDC::Jiujitsu::Commands::daemon::procwatch,
     'help'      => \&help,
     '--version' => sub { print "version"; exit; },
     '--usage'   => sub { print "usage";   exit; },
