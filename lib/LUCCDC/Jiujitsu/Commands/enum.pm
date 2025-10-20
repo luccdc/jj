@@ -34,4 +34,7 @@ sub help {
     my () = @_;
 
     print "Enumerate the system.\n";
+    return;
 }
+
+1;
