@@ -32,7 +32,10 @@ our @EXPORT_OK = qw(rhel_or_debian_do rhel_or_debian_return platform);
 
 sub platform {
     my %vars = process_os_release();
-    if ( $vars{"ID_LIKE"} =~ /rhel/ ) {
+    if ( $vars{"ID"} =~ /debian/ ) {
+        return "debian";
+    }
+    elsif ( $vars{"ID_LIKE"} =~ /rhel/ ) {
         return "rhel";
     }
     else {
