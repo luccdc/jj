@@ -6,10 +6,10 @@ use LUCCDC::Jiujitsu::Util::Logging qw(error);
 
 use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS);
 $VERSION     = 1.00;
-@EXPORT_OK   = qw(parser number_pat string_pat);
+@EXPORT_OK   = qw(parser number_pat string_pat flag_pat);
 %EXPORT_TAGS = (
     DEFAULT  => \@EXPORT_OK,
-    patterns => [qw(number_pat string_pat)]
+    patterns => [qw(number_pat string_pat flag_pat)]
 
     #Both    => [qw(&func1 &func2)]
 );
@@ -22,6 +22,10 @@ sub number_pat {
 
 sub string_pat {
     return qr/ (\S*) /xms;
+}
+
+sub flag_pat {
+    return qr/        /xms;
 }
 
 sub parser {
