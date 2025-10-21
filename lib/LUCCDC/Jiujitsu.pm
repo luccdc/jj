@@ -1,6 +1,6 @@
 package LUCCDC::Jiujitsu;
 use strictures 2;
-use LUCCDC::Jiujitsu::Util::Arguments qw(&parser);
+use LUCCDC::Jiujitsu::Util::Arguments qw(&parser :patterns);
 
 use LUCCDC::Jiujitsu::Commands::SSH;
 use LUCCDC::Jiujitsu::Commands::backup;
@@ -18,7 +18,7 @@ my @options = (
         name => 'verbose',
         flag => '--verbose',
         val  => 0,
-        pat  => qr/                  /xms
+        pat  => flag_pat
     },
 );
 
