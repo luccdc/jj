@@ -2,7 +2,7 @@ package LUCCDC::Jiujitsu::Util::Arguments;
 use strictures 2;
 use parent qw(Exporter);
 
-use LUCCDC::Jiujitsu::Util::Logging;
+use LUCCDC::Jiujitsu::Util::Logging qw(error);
 
 use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS);
 $VERSION     = 1.00;

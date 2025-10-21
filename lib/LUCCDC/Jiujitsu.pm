@@ -8,6 +8,7 @@ use LUCCDC::Jiujitsu::Commands::useradd;
 use LUCCDC::Jiujitsu::Commands::enum;
 use LUCCDC::Jiujitsu::Commands::ports;
 use LUCCDC::Jiujitsu::Commands::stat;
+use LUCCDC::Jiujitsu::Commands::file;
 
 # ABSTRACT: CLI to manage Linux
 # VERSION
@@ -23,6 +24,7 @@ my @options = (
 
 my %subcommands = (
 
+    'file'	=> \&LUCCDC::Jiujitsu::Commands::file::run,
     'ssh'       => \&LUCCDC::Jiujitsu::Commands::SSH::run,
     'enum'      => \&LUCCDC::Jiujitsu::Commands::enum::run,
     'ports'     => \&LUCCDC::Jiujitsu::Commands::ports::run,
