@@ -19,11 +19,21 @@ my @options = (
         flag => '--name|-n',
         val  => '',
         pat  => string_pat
+    },
+    {
+        name => 'help',
+        flag => '--help|-h',
+        val  => 0,
+        pat  => qr/ /xms
     }
 );
 
 sub run {
     my %arg = parser( \@options, {} )->(shift);
+
+    if ( $arg{"help"} ) {
+        help();
+    }
 
     my $sneaky_ip = $arg{"sneaky_ip"};
     my $namespace = $arg{"name"};
@@ -44,6 +54,19 @@ sub run {
 
     destroy_container($ns);
 
+    exit;
+}
+
+sub help {
+    print <<"END";
+Creates a shell that has access to the internet, even when the host firewall blocks outbound traffic
+
+Options:
+
+    --sneaky-ip|-i: Specifies the IP address to give the container on the network
+    --name|-n:      Specifies the name to give the container. Must be unique!
+    --help|-h:      Prints this help message
+END
     exit;
 }
 
