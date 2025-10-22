@@ -1,18 +1,11 @@
 package LUCCDC::Jiujitsu::Commands::file;
 use strictures 2;
-use LUCCDC::Jiujitsu::Util::Logging qw(error warning);
-use LUCCDC::Jiujitsu::Util::Arguments    qw(&parser :patterns);
+use LUCCDC::Jiujitsu::Util::Logging   qw(error warning %CR);
+use LUCCDC::Jiujitsu::Util::Arguments qw(&parser :patterns);
 use Digest::SHA;
 use Cwd 'abs_path';
 use POSIX;
 use Carp;
-
-my $black   = "\033[0;30m";
-my $red     = "\033[0;31m";
-my $green   = "\033[0;32m";
-my $yellow  = "\033[0;33m";
-my $white   = "\033[0;37m";
-my $nocolor = "\033[0m";
 
 my @options = (
     {
@@ -53,12 +46,12 @@ my @options = (
     },
 );
 
-my %subcommands = ( 
-    'store-hashes' => \&store,
-    's' => \&store,
+my %subcommands = (
+    'store-hashes'  => \&store,
+    's'             => \&store,
     'verify-hashes' => \&verify,
-    'v' => \&verify,
-    '--help' => \&help,
+    'v'             => \&verify,
+    '--help'        => \&help,
 );
 my %empty = ();
 
@@ -76,31 +69,31 @@ sub store {
     my ($cmdline) = @_;
     my %arg = $subcmd_parser->($cmdline);
 
-    if($arg{'files'} eq '' && $arg{'dirs'} eq '') {
-        croak warning('No files specified')
+    if ( $arg{'files'} eq '' && $arg{'dirs'} eq '' ) {
+        croak warning('No files specified');
     }
 
-    open my $hashfile, '>', $arg{'hashfile'} or croak error('Invalid hash file');
-    store_hashes($hashfile, get_files(%arg));
+    open my $hashfile, '>', $arg{'hashfile'}
+      or croak error('Invalid hash file');
+    store_hashes( $hashfile, get_files(%arg) );
     close $hashfile;
 
     exit;
 }
 
 sub store_hashes {
-    my ($hashfile, @files) = @_;
-    for my $file ( @files ) {
-        if ( -f $file ){
+    my ( $hashfile, @files ) = @_;
+    for my $file (@files) {
+        if ( -f $file ) {
             my $sha1 = Digest::SHA->new(256);
             $sha1->addfile($file);
 
-            my $dir = getcwd;
+            my $dir      = getcwd;
             my $abs_path = abs_path($file);
+            my $time     = strftime '%Y-%m-%d %H:%M:%S', localtime time;
 
-            my $time = strftime '%Y-%m-%d %H:%M:%S', localtime time;
-
-            print $hashfile $abs_path, ' ',  $sha1->hexdigest, ' ', $time, "\n";
-            print $abs_path, ' ',  $sha1->hexdigest, ' ', $time, "\n";
+            print $hashfile $abs_path, ' ', $sha1->hexdigest, ' ', $time, "\n";
+            print $abs_path,           ' ', $sha1->hexdigest, ' ', $time, "\n";
         }
     }
     return;
@@ -111,42 +104,49 @@ sub verify {
     my ($cmdline) = @_;
     my %arg = $subcmd_parser->($cmdline);
 
-    my $path_to_hash = sub { 
-        if ( -d $_ ) { return $_ => 'dir' } else { return $_ => 'file' } 
+    my $path_to_hash = sub {
+        if   ( -d $_ ) { return $_ => 'dir' }
+        else           { return $_ => 'file' }
     };
     my %tracked_paths = map { $path_to_hash->($_) } get_files(%arg);
     my @data_to_verify;
 
-    open my $hashfile, '<', $arg{'hashfile'} or croak error('Invalid hash file');
-    retrieve_hashes($hashfile, \@data_to_verify, %tracked_paths);
+    open my $hashfile, '<', $arg{'hashfile'}
+      or croak error('Invalid hash file');
+    retrieve_hashes( $hashfile, \@data_to_verify, %tracked_paths );
     close $hashfile;
 
     # Verify each file
-    foreach my $line ( @data_to_verify ) {
-        my @data = split / /, $line ;
+    foreach my $line (@data_to_verify) {
+        my @data     = split / /, $line;
         my $filepath = $data[0];
-        my $hash = $data[1];
-        my $time = $data[2];
+        my $hash     = $data[1];
+        my $time     = $data[2];
 
-        next if (exists($tracked_paths{$filepath}) && $tracked_paths{$filepath} eq 'dir');
-        if(-f $filepath) {
+        next
+          if ( exists( $tracked_paths{$filepath} )
+            && $tracked_paths{$filepath} eq 'dir' );
+        if ( -f $filepath ) {
             my $sha1 = Digest::SHA->new(256);
             $sha1->addfile($filepath);
 
-            if($hash eq $sha1->hexdigest) {
-                if (!$arg{'short'}) {
-                    print "[$green✓$nocolor]: $filepath\n";
+            if ( $hash eq $sha1->hexdigest ) {
+                if ( !$arg{'short'} ) {
+                    print "[$CR{green}✓$CR{nocolor}]: $filepath\n";
                 }
             }
-            elsif($hash eq '?') {
-                print "[$yellow!$nocolor]: $yellow$filepath$nocolor\n";
+            elsif ( $hash eq '?' ) {
+                print
+"[$CR{yellow}!$CR{nocolor}]: $CR{yellow}$filepath$CR{nocolor}\n";
             }
             else {
-                print "[$red✗$nocolor]: $red$filepath$nocolor\n";
+                print
+                  "[$CR{red}✗$CR{nocolor}]: $CR{red}$filepath$CR{nocolor}\n";
             }
         }
         else {
-            print "[$yellow?$nocolor]: $yellow$filepath$nocolor\n";
+            print
+              "[$CR{yellow}?$CR{nocolor}]: $CR{yellow}$filepath$CR{nocolor}\n";
         }
     }
 
@@ -154,31 +154,31 @@ sub verify {
 }
 
 sub retrieve_hashes {
-    my ($hashfile, $data_to_verify_p, %tracked_paths) = @_;
+    my ( $hashfile, $data_to_verify_p, %tracked_paths ) = @_;
     my %known_paths = %tracked_paths;
-    while(my $line = <$hashfile>) {
+    while ( my $line = <$hashfile> ) {
 
-        my @data = split / /, $line;
+        my @data     = split / /, $line;
         my $filepath = $data[0];
-        my $hash = $data[1];
-        my $time = $data[2];
+        my $hash     = $data[1];
+        my $time     = $data[2];
 
-        if((keys %tracked_paths) == 0) {
+        if ( ( keys %tracked_paths ) == 0 ) {
             push @{$data_to_verify_p}, $line;
             delete %known_paths{$filepath};
         }
-        elsif(exists $tracked_paths{$filepath}){
+        elsif ( exists $tracked_paths{$filepath} ) {
             push @{$data_to_verify_p}, $line;
             delete %known_paths{$filepath};
         }
-        elsif($filepath =~ /(.*)\/([^\/]*)/x && exists $tracked_paths{$1}){
+        elsif ( $filepath =~ /(.*)\/([^\/]*)/x && exists $tracked_paths{$1} ) {
             my $dir = $1;
             push @{$data_to_verify_p}, $line;
             delete %known_paths{$filepath};
         }
     }
     for my $path ( keys %known_paths ) {
-        if($known_paths{$path} eq 'file'){
+        if ( $known_paths{$path} eq 'file' ) {
             push @{$data_to_verify_p}, "$path ? ?";
         }
     }
@@ -200,7 +200,8 @@ sub help {
     print "Options:\n";
     print "\t--files (-f): Comma separated list of files to examine.\n";
     print "\t--dirs (-d): Comma separated list of directories to examine.\n";
-    print "\t--hashfile (-h): Location of stored hashes (default ./jj_hashes.txt).\n";
+    print
+"\t--hashfile (-h): Location of stoCR{red} hashes (default ./jj_hashes.txt).\n";
     print "\t--recursive (-r): Enables recursion on specified directories.\n";
     print "\t--all (-a): Include hidden files and directories\n";
     print "\t--hide (-a): Do not print valid hashes during verification\n";
@@ -210,54 +211,55 @@ sub help {
 sub get_files {
     my (%arg) = @_;
 
-    my @tracked_paths=();
-    my $recursive = $arg{"recursive"};
-    my $show_hidden = $arg{"all"};
-    
+    my @tracked_paths = ();
+    my $recursive     = $arg{"recursive"};
+    my $show_hidden   = $arg{"all"};
+
     # Parse files to check
     my @files = split /,/x, $arg{"files"};
-    for my $file ( @files ) {
+    for my $file (@files) {
         my $abs_path = abs_path($file);
-        push_file($abs_path, \@tracked_paths);
+        push_file( $abs_path, \@tracked_paths );
     }
 
     # Parse dirs to check
     my @dirs = split /,/x, $arg{"dirs"};
-    for my $dir ( @dirs ) {
+    for my $dir (@dirs) {
         my $abs_path = abs_path($dir);
-        push_dir($abs_path, \@tracked_paths, $recursive, $show_hidden);
+        push_dir( $abs_path, \@tracked_paths, $recursive, $show_hidden );
     }
 
     return @tracked_paths;
 }
 
 sub push_file {
-    my ($file, $tracked_paths_pointer)  = @_;
+    my ( $file, $tracked_paths_pointer ) = @_;
     push @{$tracked_paths_pointer}, $file;
     return;
 }
 
 sub push_dir {
-    my ($dir, $tracked_paths_pointer, $recursive, $show_hidden) = @_;
+    my ( $dir, $tracked_paths_pointer, $recursive, $show_hidden ) = @_;
 
-    opendir(my $dir_pointer, $dir);
+    opendir( my $dir_pointer, $dir );
     push @{$tracked_paths_pointer}, $dir;
     my @files = readdir $dir_pointer;
     closedir $dir_pointer;
 
-    foreach my $entry (@files)
-    {
+    foreach my $entry (@files) {
+
         # skip . and ..
-        next if($entry =~ /^[.]+$/smx);
-        next if((not $show_hidden) && $entry =~ /^[.].+$/smx);
+        next if ( $entry                         =~ /^[.]+$/smx );
+        next if ( ( not $show_hidden ) && $entry =~ /^[.].+$/smx );
 
         my $entry_abs_path = "$dir/$entry";
 
-        if(-f $entry_abs_path){
-            push_file($entry_abs_path, $tracked_paths_pointer);
+        if ( -f $entry_abs_path ) {
+            push_file( $entry_abs_path, $tracked_paths_pointer );
         }
-        elsif(-d $entry_abs_path && $recursive){
-            push_dir($entry_abs_path, $tracked_paths_pointer, $recursive, $show_hidden);
+        elsif ( -d $entry_abs_path && $recursive ) {
+            push_dir( $entry_abs_path, $tracked_paths_pointer, $recursive,
+                $show_hidden );
         }
     }
     return;

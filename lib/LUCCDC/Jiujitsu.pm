@@ -24,7 +24,7 @@ my @options = (
 
 my %subcommands = (
 
-    'file'	=> \&LUCCDC::Jiujitsu::Commands::file::run,
+    'file'      => \&LUCCDC::Jiujitsu::Commands::file::run,
     'ssh'       => \&LUCCDC::Jiujitsu::Commands::SSH::run,
     'enum'      => \&LUCCDC::Jiujitsu::Commands::enum::run,
     'ports'     => \&LUCCDC::Jiujitsu::Commands::ports::run,
@@ -45,6 +45,7 @@ sub run {
     $core->($cmdline);
 
     help();
+
     exit;
 }
 
