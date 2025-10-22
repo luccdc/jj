@@ -75,8 +75,15 @@ sub store {
     }
 
     open my $hashfile, '>', $arg{'hashfile'} or croak error('Invalid hash file');
+    store_hashes($hashfile, get_files(%arg));
+    close $hashfile;
 
-    for my $file ( get_files(%arg) ) {
+    exit;
+}
+
+sub store_hashes {
+    my ($hashfile, @files) = @_;
+    for my $file ( @files ) {
         my $sha1 = Digest::SHA->new(256);
         $sha1->addfile($file);
 
@@ -88,10 +95,7 @@ sub store {
         print $hashfile $abs_path, ' ',  $sha1->hexdigest, ' ', $time, "\n";
         print $abs_path, ' ',  $sha1->hexdigest, ' ', $time, "\n";
     }
-
-    close $hashfile;
-
-    exit;
+    return;
 }
 
 sub verify {
@@ -99,27 +103,11 @@ sub verify {
     my ($cmdline) = @_;
     my %arg = $subcmd_parser->($cmdline);
 
-    open my $hashfile, '<', $arg{'hashfile'} or croak error('Invalid hash file');
-
     my %tracked_paths = map { $_ => 1 } get_files(%arg);
     my @data_to_verify;
 
-    # Load file hashes
-    while(my $line = <$hashfile>) {
-
-        my @data = split / /, $line ;
-        my $filepath = $data[0];
-        my $hash = $data[1];
-        my $time = $data[2];
-
-        if((keys %tracked_paths) == 0) {
-            push @data_to_verify, $line;
-        }
-        elsif(exists $tracked_paths{$filepath}){
-            push @data_to_verify, $line;
-        }
-    }
-
+    open my $hashfile, '<', $arg{'hashfile'} or croak error('Invalid hash file');
+    retrieve_hashes($hashfile, \@data_to_verify, %tracked_paths);
     close $hashfile;
 
     # Verify each file
@@ -146,6 +134,25 @@ sub verify {
     }
 
     exit;
+}
+
+sub retrieve_hashes {
+    my ($hashfile, $data_to_verify_p, %tracked_paths) = @_;
+    while(my $line = <$hashfile>) {
+
+        my @data = split / /, $line ;
+        my $filepath = $data[0];
+        my $hash = $data[1];
+        my $time = $data[2];
+
+        if((keys %tracked_paths) == 0) {
+            push @{$data_to_verify_p}, $line;
+        }
+        elsif(exists $tracked_paths{$filepath}){
+            push @{$data_to_verify_p}, $line;
+        }
+    }
+    return;
 }
 
 sub help {
