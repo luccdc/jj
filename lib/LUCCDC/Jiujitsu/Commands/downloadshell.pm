@@ -23,6 +23,7 @@ sub toggle_on {
       or die "Could not open proc setting: $setting";
     print $proc_setting "1";
     close($proc_setting) or print "Could not close setting: $setting";
+    return;
 }
 
 sub run {
@@ -81,9 +82,6 @@ sub run {
         toggle_on("/proc/sys/net/ipv4/conf/$public_if/proxy_arp");
         `ip route add $sneaky_ip/32 dev downloader.0`;
     }
-
-    my $PS1 = $ENV{"PS1"} // '';
-    $ENV{"PS1"} = "\033[0;32m(download-shell)\033[0m $PS1";
 
     my $ps1_command =
 "bash --login -i -c 'export PS1=\"\\033[0;32m(download-shell)\\033[0m \$PS1\"; exec bash --login -i'";
