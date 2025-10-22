@@ -5,8 +5,6 @@ use LUCCDC::Jiujitsu::Util::DownloadContainer
   qw(&create_container &run_command &destroy_container);
 use LUCCDC::Jiujitsu::Util::Arguments qw(&parser :patterns);
 
-use Env qw($SUDO_UID);
-
 my @options = (
     {
         name => 'sneaky_ip',
@@ -42,6 +40,8 @@ sub run {
 
     my $ps1_command =
 "bash --login -i -c 'export PS1=\"\\033[0;32m($ns)\\033[0m \$PS1\"; exec bash --login -i'";
+
+    my $SUDO_UID = $ENV{"SUDO_UID"};
 
     if ( defined $SUDO_UID ) {
         my $name = `id -un $SUDO_UID`;

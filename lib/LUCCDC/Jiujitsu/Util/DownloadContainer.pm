@@ -70,7 +70,7 @@ sub create_container {
 `nft 'add rule inet $namespace postrouting oifname "$public_if" masquerade'`;
         }
         else {
-`iptables -t nat -A POSTROUTING -o "$public_if" -j MASQUERADE -m comment $namespace`;
+`iptables -t nat -A POSTROUTING -o "$public_if" -j MASQUERADE -m comment --comment $namespace`;
         }
     }
     else {
@@ -78,7 +78,7 @@ sub create_container {
 `nft 'add rule inet $namespace postrouting ip saddr $lan_ip snat to $sneaky_ip'`;
         }
         else {
-`iptables -t nat -A POSTROUTING -s $lan_ip -j SNAT --to-source $sneaky_ip -m comment $namespace`;
+`iptables -t nat -A POSTROUTING -s $lan_ip -j SNAT --to-source $sneaky_ip -m comment --comment $namespace`;
         }
 
         toggle_on_setting("/proc/sys/net/ipv4/conf/all/proxy_arp");
