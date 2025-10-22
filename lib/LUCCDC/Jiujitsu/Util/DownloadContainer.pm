@@ -2,13 +2,31 @@ package LUCCDC::Jiujitsu::Util::DownloadContainer;
 use strictures 2;
 use parent qw(Exporter);
 
-use Carp qw(croak);
-
 use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS);
 $VERSION = 1.00;
 @EXPORT_OK =
   qw(create_container run_command destroy_container run_command_once);
 %EXPORT_TAGS = ( DEFAULT => \@EXPORT_OK, );
+
+# This module provides the ability to create containers that can execute commands
+#   and access the internet, even when the host system will typically block such
+#   access with the outbound firewall
+#
+# The crux of this function exists in three functions:
+# - create_container: Given an IP address and a namespace name (both optional),
+#     creates a new container that will send outbound traffic as that IP address
+#     on the default interface of the host system
+# - run_command: Given a command and a container name (container name optional),
+#     runs the given command in the network namespace of the container
+# - destroy_container: Given the namespace name, performs cleanup and deletes the
+#     namespace. This is important to run, as resources exist outside of the process
+#     and persist when jiujitsu is done executing
+#
+# There is a convenience function, run_command_once, that will create a container,
+#   run a command inside it, and then perform cleanup
+#
+# The default container name is "downloadshell". Each container must have a unique
+#   name, or it create_container will die
 
 my $pat_octet = qr/[0-9]{1,2}|[1-2][0-9]{2}/xms;
 my $firewall  = `which nft 2>/dev/null` ? "nft" : "iptables";
@@ -65,7 +83,7 @@ sub create_container {
 
         toggle_on_setting("/proc/sys/net/ipv4/conf/all/proxy_arp");
         toggle_on_setting("/proc/sys/net/ipv4/conf/$public_if/proxy_arp");
-        `ip route add $sneaky_ip/32 dev lo`;
+        `ip route add $sneaky_ip/32 dev lo 2>/dev/null`;
     }
 
     return $namespace;
