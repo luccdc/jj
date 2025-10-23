@@ -5,7 +5,7 @@ use parent qw(Exporter);
 use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS);
 $VERSION = 1.00;
 @EXPORT_OK =
-  qw(create_container run_command destroy_container run_command_once);
+  qw(create_container run_command run_closure destroy_container run_command_once run_closure_once);
 %EXPORT_TAGS = ( DEFAULT => \@EXPORT_OK, );
 
 # This module provides the ability to create containers that can execute commands
@@ -98,6 +98,25 @@ sub run_command {
     return;
 }
 
+sub run_closure {
+    my $closure = shift;
+    my $ns      = ( shift // "downloadshell" ) || "downloadshell";
+
+    open( my $current_netns, '<', "/proc/$$/ns/net" )
+      or die "Could not open current net namespace";
+
+    open( my $new_netns, '<', "/run/netns/$ns" )
+      or die "Could not open target net namespace";
+
+    print syscall( 308, fileno($new_netns), 0 ), "\n";
+
+    $closure->();
+
+    print syscall( 308, fileno($current_netns), 0 ), "\n";
+
+    return;
+}
+
 sub destroy_container {
     my $ns = ( shift // "downloadshell" ) || "downloadshell";
 
@@ -123,6 +142,18 @@ sub run_command_once {
 
     my $ns = create_container( $sneaky_ip, $namespace );
     run_command( $cmd, $ns );
+    destroy_container($ns);
+
+    return;
+}
+
+sub run_closure_once {
+    my $closure   = shift;
+    my $sneaky_ip = shift;
+    my $namespace = shift;
+
+    my $ns = create_container( $sneaky_ip, $namespace );
+    run_closure( $closure, $ns );
     destroy_container($ns);
 
     return;
