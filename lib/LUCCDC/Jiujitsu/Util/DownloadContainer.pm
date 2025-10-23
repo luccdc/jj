@@ -110,11 +110,11 @@ sub run_closure {
 
     print syscall( 308, fileno($new_netns), 0 ), "\n";
 
-    $closure->();
+    my $return_value = $closure->();
 
     print syscall( 308, fileno($current_netns), 0 ), "\n";
 
-    return;
+    return $return_value;
 }
 
 sub destroy_container {
@@ -152,11 +152,11 @@ sub run_closure_once {
     my $sneaky_ip = shift;
     my $namespace = shift;
 
-    my $ns = create_container( $sneaky_ip, $namespace );
-    run_closure( $closure, $ns );
+    my $ns           = create_container( $sneaky_ip, $namespace );
+    my $return_value = run_closure( $closure, $ns );
     destroy_container($ns);
 
-    return;
+    return $return_value;
 }
 
 sub toggle_on_setting {
