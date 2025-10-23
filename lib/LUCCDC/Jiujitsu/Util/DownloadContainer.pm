@@ -25,15 +25,15 @@ $VERSION = 1.00;
 # There is a convenience function, run_command_once, that will create a container,
 #   run a command inside it, and then perform cleanup
 #
-# The default container name is "downloadshell". Each container must have a unique
-#   name, or it create_container will die
+# The default container name is "jjshell$$", where $$ is the PID. Each container
+#   must have a unique name, or it create_container will die
 
 my $pat_octet = qr/[0-9]{1,2}|[1-2][0-9]{2}/xms;
 my $firewall  = `which nft 2>/dev/null` ? "nft" : "iptables";
 
 sub create_container {
     my $sneaky_ip = shift;
-    my $namespace = ( shift // "downloadshell" ) || "downloadshell";
+    my $namespace = ( shift // def_ns_name() ) || def_ns_name();
 
     my $tunnel_net = find_tunnel_ip();
 
@@ -91,7 +91,7 @@ sub create_container {
 
 sub run_command {
     my $cmd = shift;
-    my $ns  = ( shift // "downloadshell" ) || "downloadshell";
+    my $ns  = ( shift // def_ns_name() ) || def_ns_name();
 
     system("ip netns exec $ns $cmd");
 
@@ -100,7 +100,7 @@ sub run_command {
 
 sub run_closure {
     my $closure = shift;
-    my $ns      = ( shift // "downloadshell" ) || "downloadshell";
+    my $ns      = ( shift // def_ns_name() ) || def_ns_name();
 
     open( my $current_netns, '<', "/proc/$$/ns/net" )
       or die "Could not open current net namespace";
@@ -118,7 +118,7 @@ sub run_closure {
 }
 
 sub destroy_container {
-    my $ns = ( shift // "downloadshell" ) || "downloadshell";
+    my $ns = ( shift // def_ns_name() ) || def_ns_name();
 
     `ip netns delete $ns`;
 
@@ -219,6 +219,10 @@ sub format_ip {
     my $ip = shift;
     return sprintf "%d.%d.%d.%d", ( $ip >> 24 ) & 0xFF, ( $ip >> 16 ) & 0xFF,
       ( $ip >> 8 ) & 0xFF, $ip & 0xFF;
+}
+
+sub def_ns_name {
+    return "jjshell$$";
 }
 
 1;
