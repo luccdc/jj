@@ -11,8 +11,8 @@ my %subcommands = ( '--help' => \&help );
 my $toplevel_parser = parser( \@options, \%subcommands );
 
 sub run {
-    my ($cmdline) = @_;
-    my %arg = $toplevel_parser->($cmdline);
+    my @cmdline = @_;
+    my %arg     = $toplevel_parser->(@cmdline);
 
     print "\n==== CPU INFO\n";
     print grep { /Core|Thread/ } `lscpu`, "\n";

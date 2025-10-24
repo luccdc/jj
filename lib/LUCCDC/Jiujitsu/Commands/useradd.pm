@@ -14,8 +14,8 @@ my @options = (
     {
         name => 'users',
         flag => '--users|-u',
-        val  => "",
-        pat  => string_pat,
+        val  => [ 'redboi', 'blueguy' ],
+        type => 'list',
     },
 
 );
@@ -25,12 +25,12 @@ my %subcommands = ( '--help' => \&help );
 my $toplevel_parser = parser( \@options, \%subcommands );
 
 sub run {
-    my ($cmdline) = @_;
-    my %arg = $toplevel_parser->($cmdline);
+    my @cmdline = @_;
+    my %arg     = $toplevel_parser->(@cmdline);
 
     my $SUDO_GROUP = rhel_or_debian_return( "wheel", "sudo" );
 
-    for my $user ( split( /,/, $arg{"users"} ) ) {
+    for my $user ( @{ $arg{"users"} } ) {
         print "Adding user $user\n";
         `useradd -r -s /usr/bin/bash -G $SUDO_GROUP $user`;
         `passwd $user`;

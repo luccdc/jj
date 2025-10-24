@@ -41,8 +41,7 @@ my %subcommands = (
 my $core = parser( \@options, \%subcommands );
 
 sub run {
-    my $cmdline = join " ", @ARGV;
-    $core->($cmdline);
+    $core->(@ARGV);
 
     help();
 

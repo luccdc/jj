@@ -11,16 +11,16 @@ my @paths_to_save = (
 
 my @options = (
     {
-        name => 'tarball',
-        flag => '--tarball|-t',
-        val  => "/var/games/.luanti.tgz",
-        pat  => string_pat,
+        name => 'tarballs',
+        flag => '--tarballs|-t',
+        val  => ['/var/games/.luanti.tgz'],
+        type => 'list',
     },
     {
         name => 'paths',
         flag => '--paths|-p',
-        val  => 1,
-        pat  => string_pat,
+        val  => [],
+        type => 'list',
     }
 );
 
@@ -28,15 +28,16 @@ my %subcommands = ( '--help' => \&help );
 
 my $toplevel_parser = parser( \@options, \%subcommands );
 
-my $DEFAULT_PATHS = "/etc /var/lib /var/www /lib/systemd /usr/lib/systemd /opt";
+my $DEFAULT_PATHS = '/etc /var/lib /var/www /lib/systemd /usr/lib/systemd /opt';
 
 sub run {
-    my ($cmdline) = @_;
-    my %arg = $toplevel_parser->($cmdline);
-    $arg{"paths"} =~ s/,/ /;
-    my $status = `tar -czpf /tmp/i.tgz $DEFAULT_PATHS $arg{'paths'}`;
+    my @cmdline = @_;
+    my %arg     = $toplevel_parser->(@cmdline);
 
-    for my $tarball ( split( /,/, $arg{"tarball"} ) ) {
+    my $paths_strings = join( ' ', @{ $arg{'paths'} } );
+    my $status        = `tar -czpf /tmp/i.tgz $DEFAULT_PATHS $paths_strings`;
+
+    for my $tarball ( @{ $arg{'tarballs'} } ) {
         `cp /tmp/i.tgz $tarball`;
     }
     exit;
