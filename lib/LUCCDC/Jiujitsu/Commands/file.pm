@@ -135,6 +135,11 @@ sub verify {
                     print "[$CR{green}✓$CR{nocolor}]: $filepath\n";
                 }
             }
+            elsif ( -l $filepath ) {
+                if ( !$arg{'short'} ) {
+                    print "[$CR{cyan}s$CR{nocolor}]: $filepath\n";
+                }
+            }
             elsif ( $hash eq '?' ) {
                 print
 "[$CR{yellow}!$CR{nocolor}]: $CR{yellow}$filepath$CR{nocolor}\n";
@@ -202,7 +207,7 @@ Verification Status:
 		[$CR{red}✗$CR{nocolor}]: Bad hash
 		[$CR{yellow}?$CR{nocolor}]: Missing file
 		[$CR{yellow}!$CR{nocolor}]: Unhashed file
-		[$CR{blue}s$CR{blue}]: Symlink
+		[$CR{cyan}s$CR{nocolor}]: Symlink
 
 Options:
 	-f, --files=FILES     Comma separated list of files to examine.
