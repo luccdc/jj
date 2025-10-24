@@ -11,38 +11,38 @@ my @options = (
     {
         name => 'files',
         flag => '--files|-f',
-        val  => "",
-        pat  => string_pat,
+        val  => [],
+        type => 'list',
     },
     {
         name => 'dirs',
         flag => '--dirs|-d',
-        val  => '',
-        pat  => string_pat,
+        val  => [],
+        type => 'list',
     },
     {
         name => 'hashfile',
         flag => '--hashfile|-h',
         val  => './jj_hashes.txt',
-        pat  => string_pat,
+        type => 'string',
     },
     {
         name => 'recursive',
         flag => '--recursive|-r',
         val  => 0,
-        pat  => flag_pat,
+        type => 'flag',
     },
     {
         name => 'all',
         flag => '--all|-a',
         val  => 0,
-        pat  => flag_pat,
+        type => 'flag',
     },
     {
         name => 'short',
         flag => '--short|-s',
         val  => 0,
-        pat  => flag_pat,
+        type => 'flag',
     },
 );
 
@@ -53,21 +53,20 @@ my %subcommands = (
     'v'             => \&verify,
     '--help'        => \&help,
 );
-my %empty = ();
 
 my $toplevel_parser = parser( \@options, \%subcommands );
-my $subcmd_parser   = parser( \@options, \%empty );
+my $subcmd_parser   = parser( \@options, {} );
 
 sub run {
-    my ($cmdline) = @_;
-    my %arg = $toplevel_parser->($cmdline);
+    my @cmdline = @_;
+    my %arg     = $toplevel_parser->(@cmdline);
     help();
     exit;
 }
 
 sub store {
-    my ($cmdline) = @_;
-    my %arg = $subcmd_parser->($cmdline);
+    my @cmdline = @_;
+    my %arg     = $subcmd_parser->(@cmdline);
 
     if ( $arg{'files'} eq '' && $arg{'dirs'} eq '' ) {
         croak warning('No files specified');
@@ -101,8 +100,8 @@ sub store_hashes {
 
 sub verify {
 
-    my ($cmdline) = @_;
-    my %arg = $subcmd_parser->($cmdline);
+    my @cmdline = @_;
+    my %arg     = $subcmd_parser->(@cmdline);
 
     my $path_to_hash = sub {
         if   ( -d $_ ) { return $_ => 'dir' }
@@ -230,14 +229,14 @@ sub get_files {
     my $show_hidden   = $arg{"all"};
 
     # Parse files to check
-    my @files = split /,/x, $arg{"files"};
+    my @files = @{ $arg{"files"} };
     for my $file (@files) {
         my $abs_path = abs_path($file);
         push_file( $abs_path, \@tracked_paths );
     }
 
     # Parse dirs to check
-    my @dirs = split /,/x, $arg{"dirs"};
+    my @dirs = @{ $arg{"dirs"} };
     for my $dir (@dirs) {
         my $abs_path = abs_path($dir);
         push_dir( $abs_path, \@tracked_paths, $recursive, $show_hidden );
