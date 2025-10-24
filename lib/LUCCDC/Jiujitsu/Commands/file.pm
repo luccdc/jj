@@ -187,24 +187,33 @@ sub retrieve_hashes {
 
 sub help {
 
-    print "Tools for files\n";
-    print "Usage:\n";
-    print "\tjj file <subcommand> <options>\n";
-    print "Subcommands:\n";
-    print "\tstore-hashes (s): Stores current hashes\n";
-    print "\tverify-hashes (v): Verifies stored hashes \n";
-    print "\t\t[ ]: Good hash\n";
-    print "\t\t[X]: Bad hash\n";
-    print "\t\t[?]: Missing file\n";
-    print "\t\t[!]: Unhashed file\n";
-    print "Options:\n";
-    print "\t--files (-f): Comma separated list of files to examine.\n";
-    print "\t--dirs (-d): Comma separated list of directories to examine.\n";
-    print
-"\t--hashfile (-h): Location of stoCR{red} hashes (default ./jj_hashes.txt).\n";
-    print "\t--recursive (-r): Enables recursion on specified directories.\n";
-    print "\t--all (-a): Include hidden files and directories\n";
-    print "\t--hide (-a): Do not print valid hashes during verification\n";
+    print <<__END_HELP__;
+Tools for files
+
+Usage:
+		jj file <subcommand> <options>
+
+Subcommands:
+		s, store-hashes:  Stores current hashes
+		v, verify-hashes: Verifies stored hashes
+
+Verification Status:
+		[$CR{green}✓$CR{nocolor}]: Good hash
+		[$CR{red}✗$CR{nocolor}]: Bad hash
+		[$CR{yellow}?$CR{nocolor}]: Missing file
+		[$CR{yellow}!$CR{nocolor}]: Unhashed file
+		[$CR{blue}s$CR{blue}]: Symlink
+
+Options:
+	-f, --files=FILES     Comma separated list of files to examine.
+	-d, --dirs=DIRS       Comma separated list of directories to examine.
+	-h, --hashfile=FILE   Location of stored hashes (default ./jj_hashes.txt).
+	-r, --recursive       Enables recursion on specified directories.
+	-a, --all             Include hidden files and directories
+	-s, --short           Do not print valid hashes during verification
+
+__END_HELP__
+
     exit;
 }
 
