@@ -192,7 +192,7 @@ sub retrieve_hashes {
 
 sub help {
 
-    print <<__END_HELP__;
+    print <<"END_HELP";
 Tools for files
 
 Usage:
@@ -217,7 +217,7 @@ Options:
 	-a, --all             Include hidden files and directories
 	-s, --short           Do not print valid hashes during verification
 
-__END_HELP__
+END_HELP
 
     exit;
 }
@@ -255,7 +255,8 @@ sub push_file {
 sub push_dir {
     my ( $dir, $tracked_paths_pointer, $recursive, $show_hidden ) = @_;
 
-    opendir( my $dir_pointer, $dir );
+    opendir( my $dir_pointer, $dir )
+      or croak error("Invalid directory: $dir\n");
     push @{$tracked_paths_pointer}, $dir;
     my @files = readdir $dir_pointer;
     closedir $dir_pointer;
