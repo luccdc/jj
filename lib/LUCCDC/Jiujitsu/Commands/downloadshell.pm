@@ -18,20 +18,17 @@ my @options = (
         val  => '',
         pat  => string_pat
     },
-    {
-        name => 'help',
-        flag => '--help|-h',
-        val  => 0,
-        pat  => qr/ /xms
-    }
+
+);
+
+my %subcommands = (
+    '--help' => \&help,
+    '-h'     => \&help,
+    'help'   => \&help,
 );
 
 sub run {
-    my %arg = parser( \@options, {} )->(shift);
-
-    if ( $arg{"help"} ) {
-        help();
-    }
+    my %arg = parser( \@options, \%subcommands )->(@_);
 
     my $sneaky_ip = $arg{"sneaky_ip"};
     my $namespace = $arg{"name"};
@@ -58,15 +55,15 @@ sub run {
 }
 
 sub help {
-    print <<"END";
+    print <<"END_HELP";
 Creates a shell that has access to the internet, even when the host firewall blocks outbound traffic
 
 Options:
+	-i, --sneaky-ip=IP    The IP address to give the container on the network
+	-n, --name=NAME       The name to give the container. Must be unique!
+	-h, --help            Print this help message
 
-    --sneaky-ip|-i: Specifies the IP address to give the container on the network
-    --name|-n:      Specifies the name to give the container. Must be unique!
-    --help|-h:      Prints this help message
-END
+END_HELP
     exit;
 }
 

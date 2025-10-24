@@ -196,6 +196,7 @@ sub help {
 Tools for files
 
 Usage:
+<<<<<<< Updated upstream
 		jj file <subcommand> <options>
 
 Subcommands:
@@ -208,6 +209,20 @@ Verification Status:
 		[$CR{yellow}?$CR{nocolor}]: Missing file
 		[$CR{yellow}!$CR{nocolor}]: Unhashed file
 		[$CR{cyan}s$CR{nocolor}]: Symlink
+=======
+	jj file <subcommand> <options>
+
+Subcommands:
+	s, store-hashes:  Stores current hashes
+	v, verify-hashes: Verifies stored hashes
+
+Verification Status:
+	[$CR{green}✓$CR{nocolor}]: Good hash
+	[$CR{red}✗$CR{nocolor}]: Bad hash
+	[$CR{yellow}?$CR{nocolor}]: Missing file
+	[$CR{yellow}!$CR{nocolor}]: Unhashed file
+	[$CR{cyan}s$CR{nocolor}]: Symlink
+>>>>>>> Stashed changes
 
 Options:
 	-f, --files=FILES     Comma separated list of files to examine.
