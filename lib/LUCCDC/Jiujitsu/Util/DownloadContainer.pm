@@ -32,8 +32,9 @@ my $pat_octet = qr/[0-9]{1,2}|[1-2][0-9]{2}/xms;
 my $firewall  = `which nft 2>/dev/null` ? "nft" : "iptables";
 
 sub create_container {
-    my $sneaky_ip = shift;
-    my $namespace = ( shift // def_ns_name() ) || def_ns_name();
+    my ( $sneaky_ip, $namespace ) = @_;
+
+    $namespace ||= def_ns_name();
 
     my $tunnel_net = find_tunnel_ip();
 
@@ -90,8 +91,8 @@ sub create_container {
 }
 
 sub run_command {
-    my $cmd = shift;
-    my $ns  = ( shift // def_ns_name() ) || def_ns_name();
+    my ( $cmd, $ns ) = @_;
+    $ns ||= def_ns_name();
 
     system("ip netns exec $ns $cmd");
 
@@ -99,8 +100,8 @@ sub run_command {
 }
 
 sub run_closure {
-    my $closure = shift;
-    my $ns      = ( shift // def_ns_name() ) || def_ns_name();
+    my ( $closure, $ns ) = @_;
+    $ns ||= def_ns_name();
 
     open( my $current_netns, '<', "/proc/$$/ns/net" )
       or die "Could not open current net namespace";
@@ -118,7 +119,8 @@ sub run_closure {
 }
 
 sub destroy_container {
-    my $ns = ( shift // def_ns_name() ) || def_ns_name();
+    my ($ns) = @_;
+    $ns ||= def_ns_name();
 
     `ip netns delete $ns`;
 
@@ -136,9 +138,7 @@ sub destroy_container {
 }
 
 sub run_command_once {
-    my $cmd       = shift;
-    my $sneaky_ip = shift;
-    my $namespace = shift;
+    my ( $cmd, $sneaky_ip, $namespace ) = @_;
 
     my $ns = create_container( $sneaky_ip, $namespace );
     run_command( $cmd, $ns );
@@ -148,9 +148,7 @@ sub run_command_once {
 }
 
 sub run_closure_once {
-    my $closure   = shift;
-    my $sneaky_ip = shift;
-    my $namespace = shift;
+    my ( $closure, $sneaky_ip, $namespace ) = @_;
 
     my $ns           = create_container( $sneaky_ip, $namespace );
     my $return_value = run_closure( $closure, $ns );
@@ -160,7 +158,7 @@ sub run_closure_once {
 }
 
 sub toggle_on_setting {
-    my $setting = shift;
+    my ($setting) = @_;
     open( my $proc_setting, '>', $setting )
       or die "Could not open proc setting: $setting";
     print $proc_setting "1";
@@ -169,7 +167,8 @@ sub toggle_on_setting {
 }
 
 sub parse_subnet {
-    my ( $a, $b, $c, $d, $sn ) = shift =~ m{
+    my ($subnet) = @_;
+    my ( $a, $b, $c, $d, $sn ) = $subnet =~ m{
         ($pat_octet)\.($pat_octet)\.($pat_octet)\.($pat_octet)/([0-9]+)
     }xms;
 
@@ -216,7 +215,7 @@ sub find_tunnel_ip {
 }
 
 sub format_ip {
-    my $ip = shift;
+    my ($ip) = @_;
     return sprintf "%d.%d.%d.%d", ( $ip >> 24 ) & 0xFF, ( $ip >> 16 ) & 0xFF,
       ( $ip >> 8 ) & 0xFF, $ip & 0xFF;
 }
