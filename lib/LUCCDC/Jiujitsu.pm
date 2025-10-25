@@ -9,6 +9,7 @@ use LUCCDC::Jiujitsu::Commands::enum;
 use LUCCDC::Jiujitsu::Commands::ports;
 use LUCCDC::Jiujitsu::Commands::stat;
 use LUCCDC::Jiujitsu::Commands::file;
+use LUCCDC::Jiujitsu::Commands::downloadshell;
 
 # ABSTRACT: CLI to manage Linux
 # VERSION
@@ -24,17 +25,18 @@ my @options = (
 
 my %subcommands = (
 
-    'file'      => \&LUCCDC::Jiujitsu::Commands::file::run,
-    'ssh'       => \&LUCCDC::Jiujitsu::Commands::SSH::run,
-    'enum'      => \&LUCCDC::Jiujitsu::Commands::enum::run,
-    'ports'     => \&LUCCDC::Jiujitsu::Commands::ports::run,
-    'backup'    => \&LUCCDC::Jiujitsu::Commands::backup::run,
-    'useradd'   => \&LUCCDC::Jiujitsu::Commands::useradd::run,
-    'stat'      => \&LUCCDC::Jiujitsu::Commands::stat::run,
-    'help'      => \&help,
-    '--version' => sub { print "version"; exit; },
-    '--usage'   => sub { print "usage";   exit; },
-    '--help'    => \&help,
+    'backup'        => \&LUCCDC::Jiujitsu::Commands::backup::run,
+    'downloadshell' => \&LUCCDC::Jiujitsu::Commands::downloadshell::run,
+    'enum'          => \&LUCCDC::Jiujitsu::Commands::enum::run,
+    'file'          => \&LUCCDC::Jiujitsu::Commands::file::run,
+    'help'          => \&help,
+    'ports'         => \&LUCCDC::Jiujitsu::Commands::ports::run,
+    'useradd'       => \&LUCCDC::Jiujitsu::Commands::useradd::run,
+    'ssh'           => \&LUCCDC::Jiujitsu::Commands::SSH::run,
+    'stat'          => \&LUCCDC::Jiujitsu::Commands::stat::run,
+    '--version'     => sub { print "version"; exit; },
+    '--usage'       => sub { print "usage";   exit; },
+    '--help'        => \&help,
 
 );
 
