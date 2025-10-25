@@ -10,13 +10,13 @@ my @options = (
         name => 'sneaky_ip',
         flag => '--sneaky-ip|-i',
         val  => '',
-        pat  => string_pat,
+        type => 'string',
     },
     {
         name => 'name',
         flag => '--name|-n',
         val  => '',
-        pat  => string_pat
+        type => 'string',
     },
 
 );
