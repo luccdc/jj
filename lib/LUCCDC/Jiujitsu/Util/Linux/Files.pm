@@ -21,7 +21,7 @@ sub _fgrep_process {
   for my $i ( 0 .. $#files ) {
     open my $file, '<', $files[$i] or die "Can't open '$files[$i]'";
 
-    for my $line (<$file>) {
+    while ( my $line = <$file> ) {
       my $state = &$closure( $i, $., $line );
       if ( $state < 0 ) {
 
