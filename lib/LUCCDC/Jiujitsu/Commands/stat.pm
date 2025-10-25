@@ -4,7 +4,12 @@ use LUCCDC::Jiujitsu::Util::Arguments    qw(&parser);
 use LUCCDC::Jiujitsu::Util::Linux::Files qw(fgrep fgrep_flat);
 my @options = ();
 
-my %subcommands = ( "cpu" => \&cpu );
+my %subcommands = (
+    "cpu"    => \&cpu,
+    "help"   => \&help,
+    "--help" => \&help,
+    "-h"     => \&help,
+);
 
 my $toplevel_parser = parser( \@options, \%subcommands );
 
@@ -14,6 +19,7 @@ sub run {
 
     my %arg = $toplevel_parser->(@cmdline);
 
+    help();
     exit;
 }
 
@@ -31,7 +37,22 @@ sub cpu {
     my $usage = ( $user + $system ) * 100 / ( $user + $system + $idle );
 
     printf( "%.5f%%\n", $usage );
-    return $usage;
+    exit;
+}
+
+sub help {
+    print <<'END_HELP';
+Tools for system status
+
+Usage:
+	jj stat <subcommand> <options>
+
+Subcommands:
+	cpu:  Print current CPU Usage
+	help: Print this help message
+
+END_HELP
+    exit;
 }
 
 1;
