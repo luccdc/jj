@@ -1,0 +1,4 @@
+severity = stern
+
+[InputOutput::RequireBriefOpen]
+lines = 20
