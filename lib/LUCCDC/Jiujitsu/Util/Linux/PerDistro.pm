@@ -11,11 +11,12 @@ our @EXPORT_OK = qw(rhel_or_debian_do rhel_or_debian_return platform);
     sub process_os_release() {
 
         unless (%os_release_vars) {
-            my $file = gensym();
-            open $file, '<', "/etc/os-release"
+            open my $file, '<', "/etc/os-release"
               or die "Can't open /etc/os-release.";
+
             my @lines = <$file>;
-            close $file;
+
+            close($file);
 
             for my $line (@lines) {
                 my ( $varname, $value ) = $line =~ /([^=]+)=(.+)/;

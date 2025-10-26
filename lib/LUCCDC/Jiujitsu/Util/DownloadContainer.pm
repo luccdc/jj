@@ -115,6 +115,8 @@ sub run_closure {
 
     print syscall( 308, fileno($current_netns), 0 ), "\n";
 
+    close($current_netns);
+    close($new_netns);
     return $return_value;
 }
 

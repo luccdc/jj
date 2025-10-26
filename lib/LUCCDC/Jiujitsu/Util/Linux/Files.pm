@@ -42,7 +42,7 @@ sub _fgrep_process {
 }
 
 # Mostly stolen from File::Grep
-sub fgrep (&@) {
+sub fgrep (&@) {    ## no critic (ProhibitSubroutinePrototypes)
   my ( $coderef, @files ) = @_;
 
   if (wantarray) {    # Yield list of matches
@@ -95,7 +95,7 @@ sub fgrep (&@) {
 }
 
 # Straight stolen from File::Grep
-sub fgrep_flat (&@) {
+sub fgrep_flat (&@) {    ## no critic (ProhibitSubroutinePrototypes)
   my ( $coderef, @files ) = @_;
   my @matches;
   my $sub = sub {

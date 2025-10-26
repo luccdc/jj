@@ -28,7 +28,8 @@ my %subcommands = (
 );
 
 sub run {
-    my %arg = parser( \@options, \%subcommands )->(@_);
+    my @cmdline = @_;
+    my %arg     = parser( \@options, \%subcommands )->(@cmdline);
 
     my $sneaky_ip = $arg{"sneaky_ip"};
     my $namespace = $arg{"name"};
