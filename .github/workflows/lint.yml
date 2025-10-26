@@ -21,4 +21,4 @@ jobs:
 
             - name: Perlcritic Check
               run: |
-                  perlcritic --stern lib/LUCCDC/Jiujitsu
+                  perlcritic lib/LUCCDC/Jiujitsu

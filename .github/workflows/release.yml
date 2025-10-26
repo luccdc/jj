@@ -12,7 +12,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
       - name: Create tarball
-        run: git archive --format=tar.gz -o jj.tgz HEAD
+        run: git archive --format=tar.gz --prefix=jj/ -o jj.tgz HEAD
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
