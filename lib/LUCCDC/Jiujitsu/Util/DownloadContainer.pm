@@ -18,6 +18,8 @@ $VERSION = 1.00;
 #     on the default interface of the host system
 # - run_command: Given a command and a container name (container name optional),
 #     runs the given command in the network namespace of the container
+# - run_closure: Given a closure and a container name (container name optional),
+#     runs the closure in the network namespace of the container
 # - destroy_container: Given the namespace name, performs cleanup and deletes the
 #     namespace. This is important to run, as resources exist outside of the process
 #     and persist when jiujitsu is done executing
@@ -109,14 +111,15 @@ sub run_closure {
     open( my $new_netns, '<', "/run/netns/$ns" )
       or die "Could not open target net namespace";
 
-    print syscall( 308, fileno($new_netns), 0 ), "\n";
+    syscall( 308, fileno($new_netns), 0 );
+    close($new_netns);
 
     my $return_value = $closure->();
 
-    print syscall( 308, fileno($current_netns), 0 ), "\n";
+    syscall( 308, fileno($current_netns), 0 );
 
     close($current_netns);
-    close($new_netns);
+
     return $return_value;
 }
 
