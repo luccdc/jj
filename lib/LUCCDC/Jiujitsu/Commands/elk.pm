@@ -725,7 +725,7 @@ output.elasticsearch:
 EOD
     close $fbyml;
 
-    `filebeat setup`;
+    system("filebeat setup");
 
     open my $fbymlp, '>', '/etc/filebeat/filebeat.yml' or die $!;
     print $fbymlp <<"EOD";
@@ -770,7 +770,7 @@ output.elasticsearch:
 EOD
     close $pbyml;
 
-    `packetbeat setup`;
+    system("packetbeat setup");
 
     open my $pbymlp, '>', '/etc/packetbeat/packetbeat.yml' or die $!;
     print $pbymlp <<"EOD";
