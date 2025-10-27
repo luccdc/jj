@@ -3,6 +3,7 @@ use strictures 2;
 
 use Carp;
 use File::Path qw(make_path);
+use IPC::Open2;
 use POSIX ":sys_wait_h";
 
 use LUCCDC::Jiujitsu::Util::Logging          qw(message error warning header);
@@ -62,7 +63,7 @@ my @options = (
     {
         name => 'elk_share_port',
         flag => '--elk-share-port|-p',
-        val  => 8000,
+        val  => 8080,
         type => 'number'
     },
     {
@@ -99,6 +100,150 @@ my %helpcommands = (
 
 my $toplevel_parser = parser( \@options, \%subcommands );
 my $sub_parser      = parser( \@options, \%helpcommands );
+
+my $AUDITBEAT_BASE_CONFIG = <<'EOD';
+auditbeat.modules:
+- module: auditd
+  audit_rules: |
+    # Executions
+    -a always,exit -F arch=b64 -S execve,execveat -k exec
+    -a always,exit -F arch=b64 -S clone,clone3 -k clones
+
+    # Identity changes
+    -w /etc/group -p wa -k identity
+    -w /etc/passwd -p wa -k identity
+    -w /etc/gshadow -p wa -k identity
+    -w /etc/shadow -p wa -k identity
+
+    # Unauthorized access attempts/enumeration
+    -a always,exit -F arch=b64 -S open,creat,truncat,ftruncate,openat,open_by_handle_at -F exit=-EACCESS -k access
+    -a always,exit -F arch=b64 -S open,creat,truncat,ftruncate,openat,open_by_handle_at -F exit=-EPERM -k access
+    -a always,exit -F arch=b64 -S geteuid,getuid,getegid,getgid -k potential_enum
+
+    # Networking info
+    -a always,exit -F arch=b64 -S socket -k sockets
+    -a always,exit -F arch=b64 -S socket -F a0=17 -F a1=3 -k raw_sockets
+
+    # Process injection
+    -a always,exit -F arch=b64 -S ptrace -k ptrace
+
+- module: file_integrity
+  paths:
+  - /bin
+  - /usr/bin
+  - /sbin
+  - /usr/sbin
+  - /etc
+
+- module: system
+  datasets:
+  - host
+  - login
+  - process
+  - socket
+  - user
+  state.period: 12h
+  user.detect_password_changes: true
+  login.wtmp_file_pattern: /var/log/wtmp*
+  login.btmp_file_pattern: /var/log/btmp*
+
+setup.template.settings.index.number_of_shards: 1
+
+processors:
+  - add_host_metadata: ~
+  - add_docker_metadata: ~
+
+EOD
+
+my $PACKETBEAT_BASE_CONFIG = <<'EOD';
+packetbeat.interfaces.device: any
+packetbeat.interfaces.poll_default_route: 1m
+packetbeat.interfaces.internal_networks:
+  - private
+packetbeat.flows:
+  timeout: 30s
+  period: 10s
+packetbeat.protocols:
+- type: icmp
+  enabled: true
+- type: amqp
+  ports: [5672]
+- type: cassandra
+  ports: [9042]
+- type: dhcpv4
+  ports: [67, 68]
+- type: dns
+  ports: [53]
+- type: http
+  ports: [80, 8080, 8000, 5000, 8002]
+- type: memcache
+  ports: [11211]
+- type: mysql
+  ports: [3306, 3307]
+- type: pgsql
+  ports: [5432]
+- type: redis
+  ports: [6379]
+- type: thrift
+  ports: [9090]
+- type: mongodb
+  ports: [27017]
+- type: nfs
+  ports: [2049]
+- type: tls
+  ports:
+    - 8443
+- type: sip
+  ports: [5060]
+
+setup.template.settings.index.number_of_shards: 1
+
+processors:
+  - if.contains.tags: forwarded
+    then:
+      - drop_fields:
+          fields: [host]
+    else:
+      - add_host_metadata: ~
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - detect_mime_type:
+      field: http.request.body.content
+      target: http.request.mime_type
+  - detect_mime_type:
+      field: http.response.body.content
+      target: http.response.mime_type
+
+EOD
+
+# This config is special; it will be used as is for both local beats installation and
+# the central log server installation. It is intended to be injected into a file with
+# text coming after it in an ambiguous format; on the central ELK server, it allows for
+# injecting configuration to accept Cisco, Netflow, and Palo Alto logs, but on
+# endpoints it allows for specifying other modules that aren't those 3
+my $FILEBEAT_BASE_CONFIG = <<'EOD';
+filebeat.inputs:
+- type: udp
+  max_message_size: 10KiB
+  host: "0.0.0.0:514"
+  processors:
+    - syslog:
+        field: message
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_docker_metadata: ~
+
+setup.template.settings.index.number_of_shards: 1
+
+filebeat.modules:
+  - module: system
+    syslog:
+      enabled: true
+    auth:
+      enabled: true
+EOD
 
 sub run {
     my @cmdline = @_;
@@ -237,7 +382,7 @@ sub download_packages_internal {
         waitpid( $pid, 0 );
     }
 
-    header "Done downloading elastic packages!";
+    header "Done downloading elastic packages!\n";
 
     return;
 }
@@ -354,30 +499,306 @@ sub setup_kibana {
     return;
 }
 
+sub logstash_config_file {
+    my ( $id, $key ) = @_;
+
+    return <<"EOD";
+input {
+    beats {
+        port => 5044
+    }
+}
+
+output {
+    if [\@metadata][beat] == "winlogbeat" {
+        elasticsearch {
+            hosts => "https://localhost:9200"
+            manage_templates => false
+            action => "create"
+            ssl_enabled => true
+            ssl_certificate_authorities => "/etc/es_certs/http_ca.crt"
+            api_key => "$id:$key"
+
+            pipeline => "%{[\@metadata][beat]}-%{[\@metadata][version]}-routing"
+            data_stream => true
+        }
+    }
+
+    if [\@metadata][pipeline] {
+        elasticsearch {
+            hosts => "https://localhost:9200"
+            manage_templates => false
+            action => "create"
+            ssl_enabled => true
+            ssl_certificate_authorities => "/etc/es_certs/http_ca.crt"
+            api_key => "$id:$key"
+
+            pipeline => "%{[\@metadata][pipeline]}"
+            data_stream => true
+        }
+    }
+
+    elasticsearch {
+        hosts => "https://localhost:9200"
+        manage_templates => false
+        action => "create"
+        ssl_enabled => true
+        ssl_certificate_authorities => "/etc/es_certs/http_ca.crt"
+        api_key => "$id:$key"
+
+        index => "%{[\@metadata][beat]}-%{[\@metadata][version]}"
+    }
+}
+EOD
+}
+
 sub setup_logstash {
     header "Configuring Logstash\n";
+
+    my $es_password = get_elastic_password();
+
+    my $api_key_permissions_body = <<'EOD';
+{
+    "name": "logstash-api-key",
+    "role_descriptors": {
+        "logstash_writer": {
+            "cluster": ["monitor","manage_index_templates","manage_ilm"],
+            "index": [{
+                "names": ["filebeat-*","winlogbeat-*","auditbeat-*","packetbeat-*","logs-*"],
+                "privileges": ["view_index_metadata","read","create","manage","manage_ilm"]
+            }]
+        }
+    }
+}
+EOD
+
+    open2(
+        my $api_out,
+        my $api_in,
+        "curl",
+        "-k",
+        "-u",
+        "elastic:$es_password",
+        "https://localhost:9200/_security/api_key?pretty",
+        "-X",
+        "POST",
+        "-H",
+        "content-type: application/json",
+        "-d",
+        $api_key_permissions_body
+    );
+
+    my ( $id, $key );
+    while (<$api_out>) {
+        if ( $_ =~ qr/"id"\s*:\s*"([^"]+)"/xms ) {
+            $id = $1;
+        }
+        if ( $_ =~ qr/"api_key"\s*:\s*"([^"]+)"/xms ) {
+            $key = $1;
+        }
+    }
+
+    open my $file, '>', '/etc/logstash/conf.d/pipeline.conf' or die $!;
+    print $file logstash_config_file( $id, $key );
+    close $file;
+
+    `systemctl enable --now logstash`;
+
+    header "Logstash configured!\n";
 
     return;
 }
 
 sub wait_for_kibana {
+    header "Waiting for Kibana...";
 
+    while (
+        !(
+            `curl http://localhost:5601/api/status 2>/dev/null` =~
+            qr/"level":"available"/xms
+        )
+      )
+    {
+        message "Waiting for Kibana...";
+        sleep 1;
+    }
+
+    return;
 }
 
 sub setup_auditbeat {
+    my @cmdline = @_;
+    my %args    = $sub_parser->(@cmdline);
 
+    header "Setting up auditbeat";
+
+    my $es_password = get_elastic_password();
+
+    my $es_dir = $args{"elasticsearch_share_directory"};
+    my $elk_ip = $args{"elk_ip"};
+
+    open my $abyml, '>', '/etc/auditbeat/auditbeat.yml' or die $!;
+    print $abyml <<"EOD";
+$AUDITBEAT_BASE_CONFIG
+
+output.elasticsearch:
+  hosts: ["https://localhost:9200"]
+  transport: https
+  username: elastic
+  password: "$es_password"
+  ssl:
+    enabled: true
+    certificate_authorities: "/etc/es_certs/http_ca.crt"
+EOD
+    close $abyml;
+
+    system("auditbeat setup");
+
+    open my $abymlp, '>', '/etc/auditbeat/auditbeat.yml' or die $!;
+    print $abymlp <<"EOD";
+$AUDITBEAT_BASE_CONFIG
+
+output.logstash:
+  hosts: ["$elk_ip:5044"]
+EOD
+    close $abymlp;
+
+    `systemctl enable auditbeat`;
+    `systemctl restart auditbeat`;
+
+    header "Auditbeat is set up";
+
+    return;
 }
 
 sub setup_filebeat {
+    my @cmdline = @_;
+    my %args    = $sub_parser->(@cmdline);
 
+    header "Setting up Filebeat";
+
+    my $es_password = get_elastic_password();
+
+    my $es_dir = $args{"elasticsearch_share_directory"};
+    my $elk_ip = $args{"elk_ip"};
+
+    my $fbymlbase = <<'EOD';
+$FILEBEAT_BASE_CONFIG
+
+  - module: netflow
+    log:
+      enabled: true
+      var:
+        netflow_host: localhost
+        netflow_port: 2055
+        internal_networks:
+          - private
+
+  - module: panw
+    panos:
+      enabled: true
+      var.syslog_host: 0.0.0.0
+      var.syslog_port: 9001
+      var.log_level: 5
+
+  - module: cisco
+    ftd:
+      enabled: true
+      var.syslog_host: 0.0.0.0
+      var.syslog_port: 9002
+      var.log_level: 5
+
+EOD
+
+    open my $fbyml, '>', '/etc/filebeat/filebeat.yml' or die $!;
+    print $fbyml <<"EOD";
+$FILEBEAT_BASE_CONFIG
+
+output.elasticsearch:
+  hosts: ["https://localhost:9200"]
+  transport: https
+  username: "elastic"
+  password: "$es_password"
+  ssl:
+    enabled: true
+    certificate_authorities: "/etc/es_certs/http_ca.crt"
+EOD
+    close $fbyml;
+
+    `filebeat setup`;
+
+    open my $fbymlp, '>', '/etc/filebeat/filebeat.yml' or die $!;
+    print $fbymlp <<"EOD";
+$FILEBEAT_BASE_CONFIG
+
+output.logstash:
+  hosts: ["$elk_ip:5044"]
+EOD
+    close $fbymlp;
+
+    `systemctl enable filebeat`;
+    `systemctl start filebeat`;
+
+    header "Filebeat is set up";
+
+    return;
 }
 
 sub setup_packetbeat {
+    my @cmdline = @_;
+    my %args    = $sub_parser->(@cmdline);
 
+    header "Setting up Filebeat";
+
+    my $es_password = get_elastic_password();
+
+    my $es_dir = $args{"elasticsearch_share_directory"};
+    my $elk_ip = $args{"elk_ip"};
+
+    open my $pbyml, '>', '/etc/packetbeat/packetbeat.yml' or die $!;
+    print $pbyml <<"EOD";
+$PACKETBEAT_BASE_CONFIG
+
+output.elasticsearch:
+  hosts: ["https://localhost:9200"]
+  transport: https
+  username: "elastic"
+  password: "$es_password"
+  ssl:
+    enabled: true
+    certificate_authorities: "/etc/es_certs/http_ca.crt"
+EOD
+    close $pbyml;
+
+    `packetbeat setup`;
+
+    open my $pbymlp, '>', '/etc/packetbeat/packetbeat.yml' or die $!;
+    print $pbymlp <<"EOD";
+$PACKETBEAT_BASE_CONFIG
+
+output.logstash:
+  hosts: ["$elk_ip:5044"]
+EOD
+    close $pbymlp;
+
+    `systemctl enable packetbeat`;
+    `systemctl start packetbeat`;
+
+    header "Packetbeat is set up";
+
+    return;
 }
 
 sub install_beats {
+    my @cmdline = @_;
+    my %args    = $sub_parser->(@cmdline);
 
+    my $elk_ip         = $args{"elk_ip"};
+    my $elk_share_port = $args{"elk_share_port"};
+    my $download_shell = $args{"download_shell"};
+    my $sneaky_ip      = $args{"sneaky_ip"};
+
+    return;
 }
 
 1;
