@@ -10,6 +10,7 @@ use LUCCDC::Jiujitsu::Commands::ports;
 use LUCCDC::Jiujitsu::Commands::stat;
 use LUCCDC::Jiujitsu::Commands::file;
 use LUCCDC::Jiujitsu::Commands::downloadshell;
+use LUCCDC::Jiujitsu::Commands::elk;
 
 # ABSTRACT: CLI to manage Linux
 # VERSION
@@ -34,6 +35,7 @@ my %subcommands = (
     'useradd'       => \&LUCCDC::Jiujitsu::Commands::useradd::run,
     'ssh'           => \&LUCCDC::Jiujitsu::Commands::SSH::run,
     'stat'          => \&LUCCDC::Jiujitsu::Commands::stat::run,
+    'elk'           => \&LUCCDC::Jiujitsu::Commands::elk::run,
     '--version'     => sub { print "version"; exit; },
     '--usage'       => sub { print "usage";   exit; },
     '--help'        => \&help,
