@@ -4,7 +4,7 @@ use parent qw(Exporter);
 
 use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS);
 $VERSION     = 1.00;
-@EXPORT_OK   = qw(error warning message %CR);
+@EXPORT_OK   = qw(error warning message header %CR);
 %EXPORT_TAGS = ( DEFAULT => \@EXPORT_OK, );
 
 our %CR = (
@@ -19,22 +19,34 @@ our %CR = (
     nocolor => "\033[0m",
 );
 
+sub header {
+    my ( $message, $header ) = @_;
+    $header ||= "--- ";
+
+    print $CR{green}, $header, $message, $CR{nocolor};
+
+    return;
+}
+
 sub error {
     my ($message) = @_;
-    return $CR{red} . $message . $CR{nocolor};
+    print $CR{red}, $message, $CR{nocolor};
 
+    return;
 }
 
 sub warning {
     my ($message) = @_;
-    return $CR{yellow} . $message . $CR{nocolor};
+    print $CR{yellow}, $message, $CR{nocolor};
 
+    return;
 }
 
 sub message {
     my ($message) = @_;
-    return $message;
+    print $message;
 
+    return;
 }
 
 1;
