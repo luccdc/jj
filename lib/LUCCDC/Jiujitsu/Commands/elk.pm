@@ -85,12 +85,27 @@ my %subcommands = (
     '-h'               => \&help,
     'help'             => \&help,
     'install'          => \&install,
+    'in'               => \&install,
     'setupzram'        => \&setup_zram,
+    'zr'               => \&setup_zram,
     'downloadpackages' => \&download_packages,
+    'dpkg'             => \&download_packages,
     'installpackages'  => \&install_packages,
+    'ipkg'             => \&install_packages,
     'setupelastic'     => \&setup_elasticsearch,
+    'es'               => \&setup_elasticsearch,
     'setupkibana'      => \&setup_kibana,
+    'ki'               => \&setup_kibana,
     'setuplogstash'    => \&setup_logstash,
+    'lo'               => \&setup_logstash,
+    'setupauditbeat'   => \&setup_auditbeat,
+    'ab'               => \&setup_auditbeat,
+    'setuppacketbeat'  => \&setup_packetbeat,
+    'pb'               => \&setup_packetbeat,
+    'setupfilebeat'    => \&setup_filebeat,
+    'fb'               => \&setup_filebeat,
+    'beats'            => \&install_beats,
+    'installbeats'     => \&install_beats
 );
 
 my %helpcommands = (
@@ -258,7 +273,59 @@ sub run {
 }
 
 sub help {
+    my ($progname) = $0 =~ m{([^\/]+)$}xms;
 
+    print <<"END_HELP";
+Installs and configures ELK or ELK dependent endpoints (beats)
+
+Usage:
+    $progname elk install                                    # Installs an ELK stack
+    $progname elk install -d -I 10.0.2.16                    # Installs an ELK stack using the download shell and a sneaky IP
+    $progname elk beats -i 192.168.128.53                    # Installs beats to point to the ELK stack, downloading resources from the ELK share
+    $progname elk beats -i 192.168.128.53 -P 8000            # Installs beats, replacing the share port with 8000 instead of 8080
+    $progname elk beats -i 192.168.128.53 -d -I 10.0.2.17    # Installs beats using the download shell and sneaky IP
+
+Common subcommand options:
+    -V, --esver=VERSION                                                The version to use for ELK and beats packages
+    --download-url=https://artifacts.elastic.co/downloads              The URL to download ELK packages from
+    --beats-download-url=https://artifacts.elastic.co/downloads/beats  The URL to download ELK packages from
+    -S, --es-share-dir=/opt/es                                         Where to store downloaded packages for redistribution, and where to place the CA certificate
+	  -i, --elk-ip=IP                                                    The IP address of the ELK server
+	  -P, --elk-share-port=IP                                            The port of the share that a Python web server should be running from
+	  -d, --use-download-shell                                           Use the download shell when downloading packages
+	  -I, --sneaky-ip=IP                                                 Sneaky IP to use when making use of the download shell
+	  -h, --help                                                         Print this help message
+
+Subcommands:
+    in, install:               Run through the full set up ELK setup commands; equivalent to zr, dpkg, ipkg, es, ki, lo, ab, pb, and fb
+    zr, setupzram:             Enable 4GB of ZRAM based swap
+    dpkg, downloadpackages:    Download the packages necessary to install ELK and the beats for both Debian and RHEL
+    ipkg, installpackages:     Install the downloaded packages for the appropriate operating system
+    es, setupelastic:          Configure Elasticsearch and ensure it is available with the appropriate password
+    ki, setupkibana:           Configure Kibana to access Elasticsearch and allow it to be publicly available
+    lo, setuplogstash:         Create an Elasticsearch API key and generate a logstash pipeline that uses both ECS and non-ECS dashboards and routes
+    ab, setupauditbeat:        Configure Elasticsearch and Kibana to prepare them for auditbeat data, then configure this device as an endpoint sending auditbeat data
+    fb, setupfilebeat:         Configure Elasticsearch and Kibana to prepare them for filebeat data, then configure this device as an endpoint sending filebeat data
+    pb, setuppacketbeat:       Configure Elasticsearch and Kibana to prepare them for packetbeat data, then configure this device as an endpoint sending packetbeat data
+    beats, installbeats:       Configure this device as an endpoint sending data to the specified ELK stack. Downloads packages from the ELK stack
+
+Configuration notes:
+    When installing and configuring ELK, the following ports will be opened up:
+      - 514/udp: Syslog input. Generic from Windows and Linux systems
+      - 2055/udp: Netflow input. Useful from network firewalls
+      - 5044/tcp: Beats input from endpoints
+      - 5601/tcp: Kibana web UI
+      - 8080/tcp: Python web server hosting packages for download
+      - 9001/udp: Palo Alto Syslog input
+      - 9002/udp: Cisco FTD Syslog input
+      - 9200/tcp: Elasticsearch. Useful to open for Windows to configure routing and indices
+
+    The installation of beats will depend on a Python web server or similar running that can distribute files in the elasticsearch share, by default /opt/es
+
+    Beats will require allowing outbound traffic to port 5044 on the ELK server from host and network based firewalls
+END_HELP
+
+    return;
 }
 
 sub install {
