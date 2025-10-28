@@ -2,7 +2,9 @@ package LUCCDC::Jiujitsu::Commands::elk;
 use strictures 2;
 
 use Carp;
-use File::Path qw(make_path);
+use Cwd            qw(abs_path);
+use File::Basename qw(dirname);
+use File::Path     qw(make_path);
 use IPC::Open2;
 use POSIX ":sys_wait_h";
 
@@ -25,6 +27,7 @@ sub get_elastic_password {
         $elastic_password = <STDIN>;
         `stty echo`;
         chomp $elastic_password;
+        print "\n";
     }
     return $elastic_password;
 }
@@ -575,6 +578,21 @@ sub setup_kibana {
     {
         message "Waiting for Kibana...\n";
         sleep 1;
+    }
+
+    header "Kibana online! Importing dashboards...\n";
+
+    my $base_path = dirname( abs_path(__FILE__) ) . "/elk";
+    opendir my $dir, $base_path or die $!;
+    my @files = map { $_ =~ qr/^\.+$/xms ? () : $_ } readdir $dir;
+    close $dir;
+
+    foreach my $dashboard (@files) {
+        my $es_password = get_elastic_password();
+
+        my $path_ref = '@' . "$base_path/$dashboard";
+
+`curl -k -u elastic:$es_password http://localhost:5601/api/saved_objects/_import?overwrite=true -X POST -H "kbn-xsrf: true" --form file=$path_ref`;
     }
 
     header "Kibana configured!\n";

@@ -4,3 +4,4 @@ flake.* export-ignore
 nix export-ignore
 .envrc export-ignore
 .perlcriticrc export-ignore
+*.ndjson filter=lfs diff=lfs merge=lfs -text
