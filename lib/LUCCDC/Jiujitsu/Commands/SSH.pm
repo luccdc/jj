@@ -1,13 +1,13 @@
 package LUCCDC::Jiujitsu::Commands::SSH;
 use strictures 2;
 use LUCCDC::Jiujitsu::Util::Logging;
-
+use LUCCDC::Jiujitsu::Util::Check     qw(run_cli_check);
 use LUCCDC::Jiujitsu::Util::Arguments qw(&parser :patterns);
-
-use LUCCDC::Jiujitsu::Util::systemd qw(&check_service);
-
+use LUCCDC::Jiujitsu::Util::systemd   qw(&check_service);
 use LUCCDC::Jiujitsu::Util::Linux::PerDistro
   qw(rhel_or_debian_do rhel_or_debian_return platform);
+
+use LUCCDC::Jiujitsu::Checks::ssh qw(%SSH_CHECK);
 
 sub local_ip {
     return "127.0.0.1";
@@ -56,22 +56,7 @@ sub run {
 }
 
 sub check {
-    my ($cmdline) = @_;
-
-    $subcmd_parser->($cmdline);
-    service_check();
-    return;
-}
-
-sub service_check {
-
-    if ( check_service("ssh") ) {
-        print "SSH is running";
-    }
-    else {
-        print "SSH is not running";
-    }
-
+    run_cli_check \%SSH_CHECK;
     return;
 }
 
