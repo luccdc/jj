@@ -350,19 +350,19 @@ sub install {
 
 sub setup_zram {
     if ( !( `lsmod` =~ qr/zram/ ) ) {
-        `modprobe zram`
-          or return warning("??? Could not load zram\n");
-        `zramctl /dev/zram0 --size=4G`
-          or return warning("??? Could not initialize /dev/zram0\n");
+        `modprobe zram`;
+        return warning("??? Could not load zram\n") if $? != 0;
+        `zramctl /dev/zram0 --size=4G`;
+        return warning("??? Could not initialize /dev/zram0\n") if $? != 0;
         `mkswap /dev/zram0`
           or return warning("??? Could not initialize zram swap space\n");
-        `swapon --priority=100 /dev/zram0`
-          or return warning("??? Could not enable zram swap space\n");
+        `swapon --priority=100 /dev/zram0`;
+        return warning("??? Could not enable zram swap space\n") if $? != 0;
 
-        header("ZRAM has been set up!");
+        header("ZRAM has been set up!\n");
     }
     else {
-        header("Skipping ZRAM setup");
+        header("Skipping ZRAM setup\n");
     }
 
     return;
