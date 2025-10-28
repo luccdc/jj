@@ -2,3 +2,7 @@ severity = stern
 
 [InputOutput::RequireBriefOpen]
 lines = 20
+
+[-InputOutput::ProhibitExplicitStdin]
+
+[-InputOutput::ProhibitBacktickOperators]
