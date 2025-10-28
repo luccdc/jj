@@ -4,7 +4,7 @@ use parent qw(Exporter);
 
 use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS);
 $VERSION     = 1.00;
-@EXPORT_OK   = qw(error warning message header %CR);
+@EXPORT_OK   = qw(use_buffer get_buffer error warning message header %CR);
 %EXPORT_TAGS = ( DEFAULT => \@EXPORT_OK, );
 
 our %CR = (
@@ -19,32 +19,89 @@ our %CR = (
     nocolor => "\033[0m",
 );
 
+my $USE_BUFFER = 0;
+my @BUFFER     = ();
+
+sub use_buffer {
+    $USE_BUFFER = 1;
+    @BUFFER     = ();
+
+    return;
+}
+
+sub get_buffer {
+    my @local_buffer = @BUFFER;
+    @BUFFER     = ();
+    $USE_BUFFER = 0;
+
+    return @local_buffer;
+}
+
 sub header {
     my ( $message, $header ) = @_;
     $header ||= "--- ";
 
-    print $CR{green}, $header, $message, $CR{nocolor};
+    if ($USE_BUFFER) {
+        my %msg = (
+            class   => "header",
+            message => $message
+        );
+        push @BUFFER, ( \%msg );
+    }
+    else {
+        print $CR{green}, $header, $message, $CR{nocolor};
+    }
 
     return;
 }
 
 sub error {
     my ($message) = @_;
-    print $CR{red}, $message, $CR{nocolor};
+
+    if ($USE_BUFFER) {
+        my %msg = (
+            class   => "error",
+            message => $message
+        );
+        push @BUFFER, ( \%msg );
+    }
+    else {
+        print $CR{red}, $message, $CR{nocolor};
+    }
 
     return;
 }
 
 sub warning {
     my ($message) = @_;
-    print $CR{yellow}, $message, $CR{nocolor};
+
+    if ($USE_BUFFER) {
+        my %msg = (
+            class   => "warning",
+            message => $message
+        );
+        push @BUFFER, ( \%msg );
+    }
+    else {
+        print $CR{yellow}, $message, $CR{nocolor};
+    }
 
     return;
 }
 
 sub message {
     my ($message) = @_;
-    print $message;
+
+    if ($USE_BUFFER) {
+        my %msg = (
+            class   => "message",
+            message => $message
+        );
+        push @BUFFER, ( \%msg );
+    }
+    else {
+        print $message;
+    }
 
     return;
 }
