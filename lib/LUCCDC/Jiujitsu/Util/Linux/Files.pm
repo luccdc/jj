@@ -2,10 +2,13 @@ package LUCCDC::Jiujitsu::Util::Linux::Files;
 use strictures 2;
 use parent qw(Exporter);
 use Symbol qw( gensym );
+use Carp qw(croak);
+use Cwd qw(abs_path);
+use File::Spec;
 
 use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS);
 $VERSION     = 1.00;
-@EXPORT_OK   = qw(fgrep_flat fgrep slurp_to_array);
+@EXPORT_OK   = qw(fgrep_flat fgrep slurp_to_array dirmap);
 %EXPORT_TAGS = (
   DEFAULT => \@EXPORT_OK,
 
@@ -121,6 +124,56 @@ sub slurp_to_array {
 
   close $file2;
   return @array;
+}
+
+sub dirmap {
+	my ( $start_dir, $filter_func, $p_recurse, $p_max_depth ) = @_;
+
+	croak "Starting directory not provided" unless defined $start_dir;
+	croak "Filter function not provided" unless defined $filter_func;
+	croak "Filter function is not a code reference" if ref($filter_func) ne 'CODE';
+	
+	my $recurse = $p_recurse // 1;
+	my $max_depth = $p_max_depth // -1;
+
+	my $abs_start_dir = abs_path($start_dir);
+	croak "Directory '$start_dir' does not exist or is not a directory" unless defined $abs_start_dir && -d $abs_start_dir;
+
+	my @found_files;
+	_traverse( $abs_start_dir, $filter_func, $recurse, 0, $max_depth, \@found_files );
+
+	return @found_files;
+}
+
+sub _traverse {
+	my ( $current_dir, $filter_func, $recurse, $current_depth, $max_depth, $results_ref ) = @_;
+
+	return if ( $max_depth != -1 && $current_depth > $max_depth );
+
+	my $dh;
+	unless ( opendir( $dh, $current_dir ) ) {
+		warn "Could not open directory '$current_dir' : $!";
+		return;
+	}
+
+	while ( my $entry = readdir($dh) ) {
+		next if $entry eq '.' or $entry eq '..';
+
+		my $full_path = File::Spec->catfile( $current_dir, $entry );
+
+		if ( -d $full_path ) {
+			if ($recurse) {
+				_traverse( $full_path, $filter_func, $recurse, $current_depth + 1, $max_depth, $results_ref );
+			}
+		}
+		elsif ( -f $full_path ) {
+			if ( $filter_func->($full_path) ) {
+				push @{$results_ref}, $full_path;
+			}
+		}
+	}
+
+	closedir($dh);
 }
 
 1;
