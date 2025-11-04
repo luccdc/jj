@@ -2,6 +2,8 @@ package LUCCDC::Jiujitsu::Commands::file;
 use strictures 2;
 use LUCCDC::Jiujitsu::Util::Logging   qw(error warning %CR);
 use LUCCDC::Jiujitsu::Util::Arguments qw(&parser :patterns);
+use LUCCDC::Jiujitsu::Util::Linux::Files qw(dirmap);
+use LUCCDC::Jiujitsu::Util::Linux::PerDistro qw(platform);
 use Digest::SHA;
 use Cwd 'abs_path';
 use POSIX;
@@ -47,11 +49,13 @@ my @options = (
 );
 
 my %subcommands = (
-    'store-hashes'  => \&store,
-    's'             => \&store,
-    'verify-hashes' => \&verify,
-    'v'             => \&verify,
-    '--help'        => \&help,
+    'store-hashes'    => \&store,
+    's'               => \&store,
+    'verify-hashes'   => \&verify,
+    'v'               => \&verify,
+    'verify-packages' => \&verify_pkgs,
+    'vp'              => \&verify_pkgs,
+    '--help'          => \&help,
 );
 
 my $toplevel_parser = parser( \@options, \%subcommands );
@@ -189,6 +193,68 @@ sub retrieve_hashes {
     return;
 }
 
+sub verify_pkgs {
+	my @options = @_;
+	my %arg = $subcmd_parser->(@options);
+	my @target_dirs = ('/usr/bin', '/usr/sbin');
+	push @target_dirs, ('/bin', '/sbin') unless ( -l "/bin" );
+	my @all_files;
+	for my $dir (@target_dirs) {
+		print "Scanning $dir...\n";
+		my @files_in_dir = dirmap( $dir, sub { return 1 } );
+		push @all_files, @files_in_dir;
+	}
+	
+	print "Verifying " . scalar(@all_files) . " files against package manager database...\n";
+
+	my $platform = platform();
+
+	if ($platform eq "rhel") {
+		for my $file (@all_files) {
+			my $output = `rpm -Vf "$file" 2>&1`;
+			if ($output) {
+				chomp $output;
+				if ( $output =~ /is not owned by any package/ ) {
+					print "[$CR{yellow}!$CR{nocolor}]: $file (UNOWNED)\n";
+				}
+				else {
+					print "[$CR{red}✗$CR{nocolor}]: $output\n";
+				}
+			}
+			#else {
+			#	print "[$CR{green}✓$CR{nocolor}]: $file\n";
+			#}
+		}
+	}
+	else {
+		my %packages_to_check;
+		for my $file (@all_files) {
+			my $owner_line = `dpkg -S "$file" 2>/dev/null`;
+			if ($owner_line) {
+				chomp $owner_line;
+				if ($owner_line =~ /^([a-z0-9][a-z0-9.+-]+):/) {
+					my $pkg_name = $1;
+					$packages_to_check{$pkg_name} = 1;
+				}
+			}
+			else {
+				print "[$CR{yellow}!$CR{nocolor}]: $file (UNOWNED)\n";
+			}
+		}
+
+		my @unique_packages = keys %packages_to_check;
+		print "Verifying " . scalar(@unique_packages) . " unique packages...\n";
+
+		for my $pkg (@unique_packages) {
+			my $output = `dpkg -V "$pkg" 2>&1`;
+			if ($output) {
+				print $output;
+			}
+		}
+	}
+	exit;
+}
+
 sub help {
 
     print <<"END_HELP";
@@ -198,8 +264,9 @@ Usage:
 	jj file <subcommand> <options>
 
 Subcommands:
-	s, store-hashes:  Stores current hashes
-	v, verify-hashes: Verifies stored hashes
+	s, store-hashes:     Stores current hashes
+	v, verify-hashes:    Verifies stored hashes
+	vp, verify-packages: Verifies installed packages
 
 Verification Status:
 	[$CR{green}✓$CR{nocolor}]: Good hash
