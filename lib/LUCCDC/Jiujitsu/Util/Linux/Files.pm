@@ -177,6 +177,7 @@ sub _traverse {
 	}
 
 	closedir($dh);
+	return;
 }
 
 1;
