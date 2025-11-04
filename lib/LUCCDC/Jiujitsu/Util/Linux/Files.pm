@@ -127,7 +127,7 @@ sub slurp_to_array {
 }
 
 sub dirmap {
-	my ( $start_dir, $filter_func, $p_recurse, $p_max_depth ) = @_;
+	my ( $start_dir, $filter_func, $p_recurse, $p_max_depth, $p_follow_symlinks) = @_;
 
 	croak "Starting directory not provided" unless defined $start_dir;
 	croak "Filter function not provided" unless defined $filter_func;
@@ -135,18 +135,19 @@ sub dirmap {
 	
 	my $recurse = $p_recurse // 1;
 	my $max_depth = $p_max_depth // -1;
+	my $follow_symlinks = $p_follow_symlinks // 0;
 
 	my $abs_start_dir = abs_path($start_dir);
 	croak "Directory '$start_dir' does not exist or is not a directory" unless defined $abs_start_dir && -d $abs_start_dir;
 
 	my @found_files;
-	_traverse( $abs_start_dir, $filter_func, $recurse, 0, $max_depth, \@found_files );
+	_traverse( $abs_start_dir, $filter_func, $recurse, 0, $max_depth, $follow_symlinks, \@found_files );
 
 	return @found_files;
 }
 
 sub _traverse {
-	my ( $current_dir, $filter_func, $recurse, $current_depth, $max_depth, $results_ref ) = @_;
+	my ( $current_dir, $filter_func, $recurse, $current_depth, $max_depth, $follow_symlinks, $results_ref ) = @_;
 
 	return if ( $max_depth != -1 && $current_depth > $max_depth );
 
@@ -161,14 +162,16 @@ sub _traverse {
 
 		my $full_path = File::Spec->catfile( $current_dir, $entry );
 
-		if ( -d $full_path ) {
-			if ($recurse) {
-				_traverse( $full_path, $filter_func, $recurse, $current_depth + 1, $max_depth, $results_ref );
+		if ( !( -l $full_path ) || $follow_symlinks ) {
+			if ( -d $full_path ) {
+				if ($recurse) {
+					_traverse( $full_path, $filter_func, $recurse, $current_depth + 1, $max_depth, $follow_symlinks, $results_ref );
+				}
 			}
-		}
-		elsif ( -f $full_path ) {
-			if ( $filter_func->($full_path) ) {
-				push @{$results_ref}, $full_path;
+			elsif ( -f $full_path ) {
+				if ( $filter_func->($full_path) ) {
+					push @{$results_ref}, $full_path;
+				}
 			}
 		}
 	}
