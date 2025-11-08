@@ -2,7 +2,7 @@ package LUCCDC::Jiujitsu::Commands::backup;
 use strictures 2;
 use LUCCDC::Jiujitsu::Util::Arguments        qw(&parser :patterns);
 use LUCCDC::Jiujitsu::Util::Linux::Files     qw(fgrep);
-use LUCCDC::Jiujitsu::Util::Linux::PerDistro qw(&rhel_or_debian_do &platform);
+use LUCCDC::Jiujitsu::Util::Linux::PerDistro qw(platform);
 
 my @paths_to_save = (
     '/etc',             '/var/lib', '/var/www', '/lib/systemd',

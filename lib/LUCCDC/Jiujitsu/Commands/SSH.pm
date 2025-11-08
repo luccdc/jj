@@ -6,13 +6,19 @@ use LUCCDC::Jiujitsu::Util::Arguments qw(&parser :patterns);
 
 use LUCCDC::Jiujitsu::Util::systemd qw(&check_service);
 
-use LUCCDC::Jiujitsu::Util::Linux::PerDistro
-  qw(rhel_or_debian_do rhel_or_debian_return platform);
+use LUCCDC::Jiujitsu::Util::Linux::PerDistro qw(platform);
 
 sub local_ip {
     return "127.0.0.1";
 }
-my $ssh_service_name = rhel_or_debian_return( "sshd", "ssh" );
+my $ssh_service_name = do {
+	if (platform() eq 'debian') {
+		'ssh';
+	}
+	else {
+		'sshd';
+	}
+};
 
 my @options = (
     {
