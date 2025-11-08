@@ -4,7 +4,7 @@ use LUCCDC::Jiujitsu::Util::Logging;
 
 use LUCCDC::Jiujitsu::Util::Arguments qw(&parser :patterns);
 
-use LUCCDC::Jiujitsu::Util::systemd qw(&check_service);
+use LUCCDC::Jiujitsu::Util::Service qw(&check_service);
 
 use LUCCDC::Jiujitsu::Util::Linux::PerDistro qw(platform);
 
@@ -71,13 +71,14 @@ sub check {
 
 sub service_check {
 
-    if ( check_service("ssh") ) {
+    if ( check_service($ssh_service_name) ) {
         print "SSH is running";
     }
     else {
         print "SSH is not running";
     }
-
+    
+    print "\n";
     return;
 }
 
