@@ -3,68 +3,52 @@ use strictures 2;
 use Symbol qw( gensym );
 
 use Exporter qw(import);
-our @EXPORT_OK = qw(rhel_or_debian_do rhel_or_debian_return platform);
+our @EXPORT_OK = qw(platform);
 
-{
-    my %os_release_vars = ();
+our $DISTRO_CACHE;
 
-    sub process_os_release() {
-
-        unless (%os_release_vars) {
-            open my $file, '<', "/etc/os-release"
-              or die "Can't open /etc/os-release.";
-
-            my @lines = <$file>;
-
-            close($file);
-
-            for my $line (@lines) {
-                my ( $varname, $value ) = $line =~ /([^=]+)=(.+)/;
-                if ($varname) {
-                    $os_release_vars{$varname} = $value;
+sub _detect_platform {
+    if ( -r "/etc/os-release" ) {
+        open my $file, '<', "/etc/os-release" or warn "Could not read /etc/os-release: $!";
+        if ($file) {
+            my %vars;
+            while ( my $line = <$file> ) {
+                chomp $line;
+                if ( my ( $var, $val ) = $line =~ /^([A-Z_]+)=(.+)/ ) {
+                    $val =~ s/^"|"$//g;
+                    $vars{$var} = $val;
                 }
             }
+            close $file;
 
+            my $id = $vars{ID} || '';
+            my $id_like = $vars{ID_LIKE} || '';
+
+            return 'alpine' if $id eq 'alpine';
+            return 'suse'   if $id eq 'sles' || $id eq 'opensuse' || $id_like =~ /suse/;
+            return 'rhel'   if $id eq 'rhel' || $id eq 'centos' || $id eq 'fedora' || $id_like =~ /rhel|fedora/;
+            return 'debian' if $id eq 'debian' || $id eq 'ubuntu' || $id_like =~ /debian|ubuntu/;
         }
-
-        return %os_release_vars;
     }
+
+    return 'alpine' if -e '/etc/alpine-release';
+    return 'rhel'   if -e '/etc/redhat-release' || -e '/etc/centos-release';
+    return 'suse'   if -e '/etc/SuSE-release';
+    return 'debian' if -e '/etc/debian_version';
+
+    return 'rhel'   if -x '/usr/bin/rpm' || -x '/bin/rpm';
+    return 'debian' if -x '/usr/bin/dpkg' || -x '/bin/dpkg';
+    return 'alpine' if -x '/sbin/apk' || -x '/usr/sbin/apk';
+    return 'suse'   if -x '/usr/bin/zypper' || -x '/bin/zypper';
+
+    return "debian";
 }
 
 sub platform {
-    my %vars = process_os_release();
-    if ( $vars{"ID"} =~ /debian/ ) {
-        return "debian";
-    }
-    elsif ( $vars{"ID_LIKE"} =~ /rhel/ ) {
-        return "rhel";
-    }
-    else {
-        return "debian";
-    }
-}
+    return $DISTRO_CACHE if defined $DISTRO_CACHE;
 
-sub rhel_or_debian_do {
-
-    my ( $rhel_do, $debian_do, ) = @_;
-
-    if ( platform() == "rhel" ) {
-        return $rhel_do->();
-    }
-    else {
-        return $debian_do->();
-    }
-}
-
-sub rhel_or_debian_return {
-    my ( $rhel_return, $debian_return, ) = @_;
-    if ( platform() eq "rhel" ) {
-        return $rhel_return;
-    }
-    else {
-        return $debian_return;
-    }
-
+    $DISTRO_CACHE = _detect_platform();
+    return $DISTRO_CACHE;
 }
 
 1;
