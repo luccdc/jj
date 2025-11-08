@@ -210,22 +210,21 @@ sub verify_pkgs {
 	my $platform = platform();
 
 	if ($platform eq "rhel") {
+		my $verify_output = `rpm -Va 2>&1`;
+		if ($verify_output) {
+			print "rpm -Va output: \n";
+			print $verify_output;
+		}
+
 		for my $file (@all_files) {
-			my $output = `rpm -Vf "$file" 2>&1`;
-			if ($output) {
-				chomp $output;
-				if ( $output =~ /is not owned by any package/ ) {
-					print "[$CR{yellow}!$CR{nocolor}]: $file (UNOWNED)\n";
-				}
-				else {
-					print "[$CR{red}✗$CR{nocolor}]: $output\n";
-				}
+			system("rpm -qf \"$file\" >/dev/null 2>&1");
+			if ($? != 0)
+			{
+				print "[$CR{yellow}!$CR{nocolor}]: $file (UNOWNED)\n";
 			}
-			#else {
-			#	print "[$CR{green}✓$CR{nocolor}]: $file\n";
-			#}
 		}
 	}
+
 	else {
 		my %packages_to_check;
 		for my $file (@all_files) {
