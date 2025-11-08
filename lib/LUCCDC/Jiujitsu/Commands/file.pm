@@ -209,7 +209,7 @@ sub verify_pkgs {
 
 	my $platform = platform();
 
-	if ($platform eq "rhel") {
+	if ($platform eq "rhel" || $platform eq "suse") {
 		my $verify_output = `rpm -Va 2>&1`;
 		if ($verify_output) {
 			print "rpm -Va output: \n";
@@ -220,6 +220,21 @@ sub verify_pkgs {
 			system("rpm -qf \"$file\" >/dev/null 2>&1");
 			if ($? != 0)
 			{
+				print "[$CR{yellow}!$CR{nocolor}]: $file (UNOWNED)\n";
+			}
+		}
+	}
+
+	elsif ($platform eq "alpine") {
+		my $audit_output = `apk audit --system 2>&1`;
+		if ($audit_output) {
+			print "apk audit --system output: \n";
+			print $audit_output;
+		}
+
+		for my $file (@all_files) {
+			my $owner_line = `apk info --who-owns "$file" 2>/dev/null`;
+			if (!$owner_line) {
 				print "[$CR{yellow}!$CR{nocolor}]: $file (UNOWNED)\n";
 			}
 		}
