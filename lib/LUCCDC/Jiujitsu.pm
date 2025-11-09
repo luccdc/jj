@@ -36,8 +36,8 @@ my %subcommands = (
     'ssh'           => \&LUCCDC::Jiujitsu::Commands::SSH::run,
     'stat'          => \&LUCCDC::Jiujitsu::Commands::stat::run,
     'elk'           => \&LUCCDC::Jiujitsu::Commands::elk::run,
-    '--version'     => sub { print "version"; exit; },
-    '--usage'       => sub { print "usage";   exit; },
+    '--version'     => sub { print "version\n"; exit; },
+    '--usage'       => sub { print "usage\n";   exit; },
     '--help'        => \&help,
 
 );
