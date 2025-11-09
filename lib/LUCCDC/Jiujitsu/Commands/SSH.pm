@@ -46,7 +46,8 @@ my %subcommands = (
     'net'    => \&check_bind,
     'fw'     => \&check_fw,
     'login'  => \&check_login,
-    '--help' => sub { print "ssh help"; exit; }
+    '--help' => \&help,
+    'help'   => \&help
 );
 my %empty = ();
 
@@ -54,10 +55,17 @@ my $toplevel_parser = parser( \@options, \%subcommands );
 my $subcmd_parser   = parser( \@options, \%empty );
 
 sub run {
-    my ($cmdline) = @_;
+    my @cmdline = @_;
+    
+    my %arg = $toplevel_parser->(@cmdline);
+    help();
+    exit;
+}
 
-    my %arg = $toplevel_parser->($cmdline);
-
+sub help {
+    print "Usage: jj ssh <subcommand> [options]\n\n";
+    print "[Commands]\n";
+    print "\t", join( "\n\t", sort grep( { !/^-/ } keys %subcommands ) ), "\n";
     exit;
 }
 
@@ -66,7 +74,7 @@ sub check {
 
     $subcmd_parser->($cmdline);
     service_check();
-    return;
+    exit;
 }
 
 sub service_check {
@@ -89,7 +97,7 @@ sub check_bind {
         print $elems[4], "\n";
     }
     print "\n";
-    return;
+    exit;
 }
 
 sub check_fw {
@@ -105,7 +113,7 @@ sub check_fw {
 
     # Check the firewall
     # rhel_or_debian_do( $rhel, $deb );
-    return;
+    exit;
 }
 
 sub check_login {
@@ -114,7 +122,7 @@ sub check_login {
     my %subcommands = ();
     my %arg         = parser( \@options, \%subcommands )->($cmdline);
     `ssh $arg{'user'}" . "@" . "$arg{'host'}`;
-    return;
+    exit;
 }
 
 # sub check_service_running {
