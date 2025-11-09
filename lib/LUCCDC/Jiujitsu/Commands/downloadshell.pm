@@ -37,7 +37,7 @@ sub run {
     my $ns = create_container( $sneaky_ip, $namespace );
 
     my $ps1_command =
-"bash --login -i -c 'export PS1=\"\\033[0;32m($ns)\\033[0m \$PS1\"; exec bash --login -i'";
+"/bin/sh -l -i -c 'export PS1=\"\\033[0;32m($ns)\\033[0m \$PS1\"; exec /bin/sh -l -i'";
 
     my $SUDO_UID = $ENV{"SUDO_UID"};
 

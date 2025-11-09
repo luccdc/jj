@@ -36,9 +36,18 @@ sub run {
 	    }
     };
 
+    my $SHELL_PATH = do {
+	    if (platform() eq 'alpine') {
+		    '/bin/ash';
+	    }
+	    else {
+		    '/bin/bash';
+	    }
+    };
+
     for my $user ( @{ $arg{"users"} } ) {
         print "Adding user $user\n";
-        `useradd -r -s /usr/bin/bash -G $SUDO_GROUP $user`;
+        `useradd -r -s $SHELL_PATH -G $SUDO_GROUP $user`;
         `passwd $user`;
     }
     exit;
