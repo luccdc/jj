@@ -72,8 +72,8 @@ sub store {
     my @cmdline = @_;
     my %arg     = $subcmd_parser->(@cmdline);
 
-    if ( $arg{'files'} eq '' && $arg{'dirs'} eq '' ) {
-        croak warning('No files specified');
+    if ( (scalar @{$arg{'files'} } == 0) && (scalar @{$arg{'dirs'} } == 0) ) {
+        croak warning("No files specified\n");
     }
 
     open my $hashfile, '>', $arg{'hashfile'}
@@ -135,7 +135,7 @@ sub verify {
 
             if ( $hash eq $sha1->hexdigest ) {
                 if ( !$arg{'short'} ) {
-                    print "[$CR{green}✓$CR{nocolor}]: $filepath\n";
+                    print "[$CR{green}+$CR{nocolor}]: $filepath\n";
                 }
             }
             elsif ( -l $filepath ) {
@@ -149,7 +149,7 @@ sub verify {
             }
             else {
                 print
-                  "[$CR{red}✗$CR{nocolor}]: $CR{red}$filepath$CR{nocolor}\n";
+                  "[$CR{red}X$CR{nocolor}]: $CR{red}$filepath$CR{nocolor}\n";
             }
         }
         else {
