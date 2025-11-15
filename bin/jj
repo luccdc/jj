@@ -1,1 +1,3 @@
-jiujitsu
+#!/usr/bin/env perl
+use LUCCDC::Jiujitsu;
+LUCCDC::Jiujitsu->run;
