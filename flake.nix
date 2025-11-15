@@ -26,6 +26,12 @@
         let
           generatedPerlPackages = import ./nix/perl.nix {inherit pkgs lib;};
 
+          #
+          # NOTE: ADD NEW PERL PACKAGES HERE
+          #
+          # In nixpkgs? Just the name: `ModulePath`
+          # Generated from CPAN? Use `generatedPerlPackages.ModulePath`
+          # Obviously replace `ModulePath` with the name of your package.
           perlDeps = with  pkgs.perl540Packages; [
             ModulePath
             FileGrep
