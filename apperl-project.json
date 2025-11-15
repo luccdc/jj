@@ -1,0 +1,25 @@
+{
+   "apperl_configs" : {
+      "jiujitsu" : {
+         "dest" : "jj.com",
+         "desc" : "description of this config",
+         "base" : "full",
+         "install_modules": [
+            ".apperl/nix-links/Module-Path-0.19.tar.gz",
+            ".apperl/nix-links/File-Grep-0.02.tar.gz",
+            ".apperl/nix-links/strictures-2.000006.tar.gz"
+         ],
+         "zip_extra_files" : {
+            "__perllib__/LUCCDC" : [
+               "lib/LUCCDC/Jiujitsu.pm",
+               "lib/LUCCDC/Jiujitsu/"
+            ],
+            "bin" : [
+               "bin/jj"
+            ]
+         },
+         "default_script" : "/zip/bin/jj"
+      }
+   },
+   "defaultconfig" : "jiujitsu"
+}

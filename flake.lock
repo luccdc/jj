@@ -1,5 +1,18 @@
 {
   "nodes": {
+    "cosmo": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1716786888,
+        "narHash": "sha256-Ljyc0Jr7luKbLT7SEzm7lOhMm4gmJTfPHvYn5AhHCm8=",
+        "type": "tarball",
+        "url": "https://cosmo.zip/pub/cosmocc/cosmocc-3.3.10.zip"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://cosmo.zip/pub/cosmocc/cosmocc-3.3.10.zip"
+      }
+    },
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": "nixpkgs-lib"
@@ -49,10 +62,24 @@
         "type": "github"
       }
     },
+    "perlSrc": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-V8a6oHgn1cR70Hznn5znKMRb6gwOLE3z9WdSWYKH+E4=",
+        "type": "file",
+        "url": "https://github.com/Perl/perl5/archive/refs/tags/v5.36.3.tar.gz"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/Perl/perl5/archive/refs/tags/v5.36.3.tar.gz"
+      }
+    },
     "root": {
       "inputs": {
+        "cosmo": "cosmo",
         "flake-parts": "flake-parts",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "perlSrc": "perlSrc"
       }
     }
   },
