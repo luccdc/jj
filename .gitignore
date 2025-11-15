@@ -3,5 +3,11 @@
 *.log
 tmp/
 
+result/
+result
 .direnv/
 .vagrant/
+
+*.com*
+*.tgz
+.apperl/

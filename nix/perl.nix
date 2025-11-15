@@ -24,34 +24,6 @@ let
     };
   };
 
-  MooseXApp = buildPerlPackage {
-    pname = "MooseX-App";
-    version = "1.43";
-    src = fetchurl {
-      url = "mirror://cpan/authors/id/M/MA/MAROS/MooseX-App-1.43.tar.gz";
-      hash = "sha256-w0YP6wM6R9V7PHbWZUfrf05ncjEnmMfoAp5qq6pnhIc=";
-    };
-    buildInputs = [
-      (withPackages (p-pkgs: with p-pkgs; [
-        TestDifferences
-        TestException
-        TestWarn
-        TestDeep
-        TestMost TestNoWarnings
-      ]))
-    ];
-    propagatedBuildInputs = [
-      (withPackages (p-pkgs: with p-pkgs; [
-        IOInteractive
-        ConfigAny Moose PodElemental namespaceautoclean
-      ]))
-    ];
-    meta = {
-      description = "Write user-friendly command line apps with even less suffering";
-      license = with lib.licenses; [ artistic1 gpl1Plus ];
-    };
-  };
-
   LinuxSystemd = buildPerlModule {
     pname = "Linux-Systemd";
     version = "1.201600";
@@ -144,14 +116,31 @@ let
     };
   };
 
+  PerlDistAPPerl = buildPerlPackage {
+    pname = "Perl-Dist-APPerl";
+    version = "0.6.1";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/G/GA/GAHAYES/Perl-Dist-APPerl-v0.6.1.tar.gz";
+      hash = "sha256-H455GwzKbVHpIJ2THq50rIBLPidkVrYMfYDRtZ0687M=";
+    };
+    buildInputs = [ perl540Packages.FileShareDirInstall ];
+    propagatedBuildInputs = [ pkgs.cosmocc pkgs.wget pkgs.zip perl540Packages.FileShareDir ];
+    meta = {
+      homepage = "https://computoid.com/APPerl";
+      description = "Actually Portable Perl";
+      license = with lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
+
 
 in
-[
-  GetoptEuclid
-  MooseXApp
-  LinuxSystemd
-  indirect
-  multidimensional
-  barewordfilehandles
-  NetDBus
-]
+{
+  inherit
+    GetoptEuclid
+    LinuxSystemd
+    indirect
+    multidimensional
+    barewordfilehandles
+    NetDBus
+    PerlDistAPPerl;
+}
