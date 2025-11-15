@@ -1,8 +1,8 @@
 # How to Use
 ```bash
-wget https://github.com/luccdc/jj/releases/latest/download/jj.tgz
+wget https://github.com/luccdc/jj/releases/latest/download/jj.com
 # OR
-curl -LO https://github.com/luccdc/jj/releases/latest/download/jj.tgz
+curl -LO https://github.com/luccdc/jj/releases/latest/download/jj.com
 ```
 
 ```bash
