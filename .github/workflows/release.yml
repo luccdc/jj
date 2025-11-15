@@ -1,21 +1,22 @@
 name: Release
-run-name: Creating release tarball...
 on:
   push:
     tags:
       - "v*.*.*"
 
 jobs:
-  Create-Tarball:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: "write"
+      contents: "write"
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-      - name: Create tarball
-        run: git archive --format=tar.gz --prefix=jj/ -o jj.tgz HEAD
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Run `nix build`
+        run: nix build .#jiujitsu
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: jj.tgz
-permissions:
-  contents: write
+          files: result/bin/jj.com
