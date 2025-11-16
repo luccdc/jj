@@ -36,6 +36,7 @@
             ModulePath
             FileGrep
             strictures
+            AppCmd
           ];
 
           apperl-link = pkgs.writeShellScriptBin "apperl-link" ''
