@@ -11,7 +11,7 @@ use Carp;
 
 sub abstract { "Tools for files" }
 
-sub usage_desc { "$0 file <command> %o <files>" }
+sub usage_desc { "$0 file <command> %o <paths>" }
 
 sub description {
     chomp( my $s = <<"EODESC");
@@ -47,7 +47,7 @@ sub opt_spec {
 sub validate_args {
     my ( $self, $opt, $args ) = @_;
     my ( $cmd, @paths ) = @{$args};
-    croak "Missing cmomand!" unless $cmd;
+    croak "Missing command!" unless $cmd;
     if ( $cmd eq 'v' or $cmd eq 'verify-hashes' ) {
         verify( $opt, \@paths );
     }
