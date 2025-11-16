@@ -1,17 +1,13 @@
-package LUCCDC::Jiujitsu::Commands::ports;
+package LUCCDC::Jiujitsu::Command::ports;
 use strictures 2;
-use LUCCDC::Jiujitsu::Util::Arguments   qw(&parser);
+use LUCCDC::Jiujitsu -command;
 use LUCCDC::Jiujitsu::Util::Linux::Proc qw(net_tcp);
-my @options = ();
+use Carp;
 
-my %subcommands = ();
+sub abstract { "View open ports" }
 
-my $toplevel_parser = parser( \@options, \%subcommands );
-
-sub run {
-    my @cmdline = @_;
-
-    my %arg = $toplevel_parser->(@cmdline);
+sub execute {
+    my ($self) = @_;
 
     map { format_tcp_line( @{$_} ) } net_tcp();
 
@@ -23,6 +19,9 @@ sub format_tcp_line {
         $head,     $loc_addr, $loc_port, $rem_addr, $rem_port,
         $tcpstate, $inode,    $pid,      $cmdline
     ) = @_;
+
+    $pid     ||= "?";
+    $cmdline ||= "?";
 
     if ( $tcpstate eq "TCP_LISTEN" ) {
         format PORT =
