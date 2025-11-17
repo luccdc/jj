@@ -1,5 +1,6 @@
-package LUCCDC::Jiujitsu::Commands::elk;
+package LUCCDC::Jiujitsu::Command::elk;
 use strictures 2;
+use LUCCDC::Jiujitsu -command;
 
 use Carp;
 use Cwd            qw(abs_path);
@@ -32,63 +33,49 @@ sub get_elastic_password {
     return $elastic_password;
 }
 
-my @options = (
-    {
-        name => 'elastic_version',
-        flag => '--esver|-V',
-        val  => '9.2.0',
-        type => 'string'
-    },
-    {
-        name => 'download_url',
-        flag => '--download-url',
-        val  => 'https://artifacts.elastic.co/downloads',
-        type => 'string'
-    },
-    {
-        name => 'beats_download_url',
-        flag => '--beats-download-url',
-        val  => 'https://artifacts.elastic.co/downloads/beats',
-        type => 'string'
-    },
-    {
-        name => 'elasticsearch_share_directory',
-        flag => '--es-share-dir|-S',
-        val  => '/opt/es',
-        type => 'string'
-    },
-    {
-        name => 'elk_ip',
-        flag => '--elk-ip|-i',
-        val  => '127.0.0.1',
-        type => 'string'
-    },
-    {
-        name => 'elk_share_port',
-        flag => '--elk-share-port|-p',
-        val  => 8080,
-        type => 'number'
-    },
-    {
-        name => 'download_shell',
-        flag => '--use-download-shell|-d',
-        val  => 0,
-        type => 'flag'
-    },
-    {
-        name => 'sneaky_ip',
-        flag => '--sneaky-ip|-I',
-        val  => '',
-        type => 'string'
-    },
-);
+sub opt_spec {
+    return (
+        [
+            'esver|V=s' => "The version to use for ELK and beats packages",
+            { default => '9.2.0' }
+        ],
+        [
+            'download-url=s' => 'The URL to download ELK packages from',
+            { default => 'https://artifacts.elastic.co/downloads' }
+        ],
+        [
+            'beats-download-url=s' => 'The URL to download ELK beats from',
+            { default => 'https://artifacts.elastic.co/downloads/beats' }
+        ],
+        [
+            'es-share-dir|S=s' =>
+'Where to store downloaded packages for redistribution, and where to place the CA certificate',
+            { default => '/opt/es' }
+        ],
+        [
+            'elk-ip|i=s' => 'The IP address of the ELK server',
+            { default => '127.0.0.1' }
+        ],
+        [
+            'elk-share-port|p=i' =>
+'The port of the share that a Python web server should be running from',
+            { default => 8080 }
+        ],
+        [
+            'use-download-shell|d' =>
+              'Use the download shell when downloading packages',
+            { default => 0 }
+        ],
+        [
+            'sneaky-ip|I=s' =>
+              'Sneaky IP to use when making use of the download shell',
+            { default => '' }
+        ],
+    );
+}
 
 my %subcommands = (
-    '--help'           => \&help,
-    '-h'               => \&help,
-    'help'             => \&help,
     'install'          => \&install,
-    'in'               => \&install,
     'setupzram'        => \&setup_zram,
     'zr'               => \&setup_zram,
     'downloadpackages' => \&download_packages,
@@ -110,14 +97,6 @@ my %subcommands = (
     'beats'            => \&install_beats,
     'installbeats'     => \&install_beats
 );
-
-my %helpcommands = (
-    '--help' => \&help,
-    '-h'     => \&help
-);
-
-my $toplevel_parser = parser( \@options, \%subcommands );
-my $sub_parser      = parser( \@options, \%helpcommands );
 
 my $AUDITBEAT_BASE_CONFIG = <<'EOD';
 auditbeat.modules:
@@ -263,41 +242,49 @@ filebeat.modules:
       enabled: true
 EOD
 
-sub run {
-    my @cmdline = @_;
+sub validate_args {
+    my ( $self, $opt, $args ) = @_;
+    my $cmd = shift @{$args};
 
+    croak "Must provide a command!" unless $cmd;
+    my @match = grep { /^$cmd/ } keys %subcommands;
+    if ( @match == 1 ) {
+        $opt->{action} = $subcommands{ $match[0] };
+    }
+    elsif ( @match > 1 ) {
+        croak "Ambiguous subcommand!\nOptions: @match";
+    }
+    else {
+        croak "Invalid command: $cmd";
+    }
+}
+
+sub execute {
+    my ( $self, $opt, $args ) = @_;
     die "You must be root to install ELK" unless $> == 0;
     die "A hostname must be set!"
       if `hostnamectl` =~ qr/Static\+hostname:\s+\(unset\)/xms;
 
-    $toplevel_parser->(@cmdline);
-
+    $opt->{action}->( $opt, $args );
     exit;
 }
 
-sub help {
+sub abstract {
+    "Installs and configures ELK or ELK dependent endpoints (beats)";
+}
+
+sub description {
     my ($progname) = $0 =~ m{([^\/]+)$}xms;
 
-    print <<"END_HELP";
-Installs and configures ELK or ELK dependent endpoints (beats)
+    chomp( my $s = <<"END_HELP");
+${\(abstract())}
 
-Usage:
+Examples:
     $progname elk install                                    # Installs an ELK stack
     $progname elk install -d -I 10.0.2.16                    # Installs an ELK stack using the download shell and a sneaky IP
     $progname elk beats -i 192.168.128.53                    # Installs beats to point to the ELK stack, downloading resources from the ELK share
     $progname elk beats -i 192.168.128.53 -P 8000            # Installs beats, replacing the share port with 8000 instead of 8080
     $progname elk beats -i 192.168.128.53 -d -I 10.0.2.17    # Installs beats using the download shell and sneaky IP
-
-Common subcommand options:
-    -V, --esver=VERSION                                                The version to use for ELK and beats packages
-    --download-url=https://artifacts.elastic.co/downloads              The URL to download ELK packages from
-    --beats-download-url=https://artifacts.elastic.co/downloads/beats  The URL to download ELK packages from
-    -S, --es-share-dir=/opt/es                                         Where to store downloaded packages for redistribution, and where to place the CA certificate
-    -i, --elk-ip=IP                                                    The IP address of the ELK server
-    -P, --elk-share-port=IP                                            The port of the share that a Python web server should be running from
-    -d, --use-download-shell                                           Use the download shell when downloading packages
-    -I, --sneaky-ip=IP                                                 Sneaky IP to use when making use of the download shell
-    -h, --help                                                         Print this help message
 
 Subcommands:
     in, install:               Run through the full set up ELK setup commands; equivalent to zr, dpkg, ipkg, es, ki, lo, ab, pb, and fb
@@ -324,27 +311,28 @@ Configuration notes:
       - 9200/tcp: Elasticsearch. Useful to open for Windows to configure routing and indices
 
     The installation of beats will depend on a Python web server or similar running that can distribute files in the elasticsearch share, by default /opt/es
-
     Beats will require allowing outbound traffic to port 5044 on the ELK server from host and network based firewalls
+
+Options:
 END_HELP
 
-    return;
+    return $s;
 }
 
 sub install {
-    my @cmdline = @_;
+    my ($opt) = @_;
 
     get_elastic_password();
 
-    setup_zram(@cmdline);
-    download_packages(@cmdline);
-    install_packages(@cmdline);
-    setup_elasticsearch(@cmdline);
-    setup_kibana(@cmdline);
-    setup_logstash(@cmdline);
-    setup_auditbeat(@cmdline);
-    setup_filebeat(@cmdline);
-    setup_packetbeat(@cmdline);
+    setup_zram($opt);
+    download_packages($opt);
+    install_packages($opt);
+    setup_elasticsearch($opt);
+    setup_kibana($opt);
+    setup_logstash($opt);
+    setup_auditbeat($opt);
+    setup_filebeat($opt);
+    setup_packetbeat($opt);
 
     help();
 
@@ -396,12 +384,12 @@ sub download_file {
 }
 
 sub download_packages_internal {
-    my (%args) = @_;
+    my (%opt) = @_;
 
-    my $es_dir  = $args{"elasticsearch_share_directory"};
-    my $dl_url  = $args{"download_url"};
-    my $bdl_url = $args{"beats_download_url"};
-    my $es_ver  = $args{"elastic_version"};
+    my $es_dir  = $opt{"es_share_dir"};
+    my $dl_url  = $opt{"download_url"};
+    my $bdl_url = $opt{"beats_download_url"};
+    my $es_ver  = $opt{"esver"};
 
     make_path($es_dir);
     chdir($es_dir);
@@ -461,14 +449,13 @@ sub download_packages_internal {
 }
 
 sub download_packages {
-    my @cmdline = @_;
-    my %args    = $sub_parser->(@cmdline);
+    my ($opt) = @_;
 
-    if ( $args{"download_shell"} ) {
-        my $ns  = create_container( $args{"sneaky_ip"} );
+    if ( $opt->{"download_shell"} ) {
+        my $ns  = create_container( $opt->{"sneaky_ip"} );
         my $val = run_closure(
             sub {
-                download_packages_internal(%args);
+                download_packages_internal( %{$opt} );
             },
             $ns
         );
@@ -476,15 +463,14 @@ sub download_packages {
         return $val;
     }
     else {
-        return download_packages_internal(%args);
+        return download_packages_internal( %{$opt} );
     }
 }
 
 sub install_packages {
-    my @cmdline = @_;
-    my %args    = $sub_parser->(@cmdline);
+    my ($opt) = @_;
 
-    my $es_dir = $args{"elasticsearch_share_directory"};
+    my $es_dir = $opt->{"es_share_dir"};
 
     header "Installing elastic packages...\n";
 
@@ -513,10 +499,9 @@ sub install_packages {
 }
 
 sub setup_elasticsearch {
-    my @cmdline = @_;
-    my %args    = $sub_parser->(@cmdline);
+    my ($opt) = @_;
 
-    my $es_dir = $args{"elasticsearch_share_directory"};
+    my $es_dir = $opt->{"es_share_dir"};
 
     header "Configuring Elasticsearch\n";
 
@@ -546,8 +531,7 @@ sub setup_elasticsearch {
 }
 
 sub setup_kibana {
-    my @cmdline = @_;
-    my %args    = $sub_parser->(@cmdline);
+    my ($opt) = @_;
 
     header "Configuring Kibana\n";
 
@@ -727,15 +711,14 @@ EOD
 }
 
 sub setup_auditbeat {
-    my @cmdline = @_;
-    my %args    = $sub_parser->(@cmdline);
+    my ($opt) = @_;
 
     header "Setting up auditbeat\n";
 
     my $es_password = get_elastic_password();
 
-    my $es_dir = $args{"elasticsearch_share_directory"};
-    my $elk_ip = $args{"elk_ip"};
+    my $es_dir = $opt->{"es_share_dir"};
+    my $elk_ip = $opt->{"elk_ip"};
 
     open my $abyml, '>', '/etc/auditbeat/auditbeat.yml' or die $!;
     print $abyml <<"EOD";
@@ -772,15 +755,14 @@ EOD
 }
 
 sub setup_filebeat {
-    my @cmdline = @_;
-    my %args    = $sub_parser->(@cmdline);
+    my ($opt) = @_;
 
     header "Setting up Filebeat\n";
 
     my $es_password = get_elastic_password();
 
-    my $es_dir = $args{"elasticsearch_share_directory"};
-    my $elk_ip = $args{"elk_ip"};
+    my $es_dir = $opt->{"es_share_dir"};
+    my $elk_ip = $opt->{"elk_ip"};
 
     my $fbymlbase = <<'EOD';
 $FILEBEAT_BASE_CONFIG
@@ -845,15 +827,14 @@ EOD
 }
 
 sub setup_packetbeat {
-    my @cmdline = @_;
-    my %args    = $sub_parser->(@cmdline);
+    my ($opt) = @_;
 
     header "Setting up Packetbeat\n";
 
     my $es_password = get_elastic_password();
 
-    my $es_dir = $args{"elasticsearch_share_directory"};
-    my $elk_ip = $args{"elk_ip"};
+    my $es_dir = $opt->{"es_share_dir"};
+    my $elk_ip = $opt->{"elk_ip"};
 
     open my $pbyml, '>', '/etc/packetbeat/packetbeat.yml' or die $!;
     print $pbyml <<"EOD";
@@ -929,13 +910,12 @@ sub download_beats {
 }
 
 sub install_beats {
-    my @cmdline = @_;
-    my %args    = $sub_parser->(@cmdline);
+    my ($opt) = @_;
 
-    my $elk_ip         = $args{"elk_ip"};
-    my $elk_share_port = $args{"elk_share_port"};
-    my $download_shell = $args{"download_shell"};
-    my $sneaky_ip      = $args{"sneaky_ip"};
+    my $elk_ip         = $opt->{"elk_ip"};
+    my $elk_share_port = $opt->{"elk_share_port"};
+    my $download_shell = $opt->{"download_shell"};
+    my $sneaky_ip      = $opt->{"sneaky_ip"};
 
     header "Downloading beats packages...\n";
 
