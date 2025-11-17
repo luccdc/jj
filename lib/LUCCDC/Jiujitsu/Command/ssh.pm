@@ -1,11 +1,8 @@
-package LUCCDC::Jiujitsu::Commands::SSH;
+package LUCCDC::Jiujitsu::Command::ssh;
 use strictures 2;
+use LUCCDC::Jiujitsu -command;
 use LUCCDC::Jiujitsu::Util::Logging;
-
-use LUCCDC::Jiujitsu::Util::Arguments qw(&parser :patterns);
-
 use LUCCDC::Jiujitsu::Util::systemd qw(&check_service);
-
 use LUCCDC::Jiujitsu::Util::Linux::PerDistro
   qw(rhel_or_debian_do rhel_or_debian_return platform);
 
@@ -14,51 +11,38 @@ sub local_ip {
 }
 my $ssh_service_name = rhel_or_debian_return( "sshd", "ssh" );
 
-my @options = (
-    {
-        name => 'port',
-        flag => '--port|-p',
-        val  => 22,
-        pat  => number_pat,
-    },
-    {
-        name => 'host',
-        flag => '--host|-h',
-        val  => local_ip(),
-        pat  => string_pat,
-    },
-    {
-        name => 'user',
-        flag => '--user|-u',
-        val  => "root",
-        pat  => string_pat,
-    }
-);
+sub opt_spec {
+    return (
+        [
+            'port|p=i' => 'Port to connect to',
+            { default => 22 }
+        ],
+        [
+            'host|H=s' => 'Host to connect to',
+            { default => => local_ip() }
+        ],
+        [
+            'user|u=s' => 'User to log in as',
+            { default => "root" }
+        ]
+    );
+}
 
 my %subcommands = (
-    'check'  => \&check,
-    'net'    => \&check_bind,
-    'fw'     => \&check_fw,
-    'login'  => \&check_login,
-    '--help' => sub { print "ssh help"; exit; }
+    'check' => \&check,
+    'net'   => \&check_bind,
+    'fw'    => \&check_fw,
+    'login' => \&check_login,
 );
 my %empty = ();
 
-my $toplevel_parser = parser( \@options, \%subcommands );
-my $subcmd_parser   = parser( \@options, \%empty );
-
-sub run {
-    my ($cmdline) = @_;
-
-    my %arg = $toplevel_parser->($cmdline);
+sub execute {
+    service_check();
 
     exit;
 }
 
 sub check {
-    my ($cmdline) = @_;
-
-    $subcmd_parser->($cmdline);
     service_check();
     return;
 }
@@ -102,11 +86,9 @@ sub check_fw {
 }
 
 sub check_login {
-    my ($cmdline) = @_;
+    my ( $opt, $arg ) = @_;
 
-    my %subcommands = ();
-    my %arg         = parser( \@options, \%subcommands )->($cmdline);
-    `ssh $arg{'user'}" . "@" . "$arg{'host'}`;
+    `ssh $opt->{'user'}" . "@" . "$opt->{'host'}`;
     return;
 }
 
