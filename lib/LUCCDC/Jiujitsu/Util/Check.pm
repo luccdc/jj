@@ -242,7 +242,7 @@ sub run_cli_check {
     my $check_name = $current_check{"name"};
 
     foreach my $check (@checks) {
-        my $check_value = $check->();
+        my $check_value = $check->{"check"}->();
 
         if ( $check_value->{"status"} eq $CHECK_SUCCESS ) {
             next if $hide_successful_steps;
@@ -268,7 +268,8 @@ sub run_cli_check {
             print "Extra check details:\n";
 
             while ( my ( $k, $v ) = each %{ $check_value->{"details"} } ) {
-                print "\t$k:\t$v\n";
+                my $val = $v // "";
+                print "\t$k:\t$val\n";
             }
 
             print "\n";

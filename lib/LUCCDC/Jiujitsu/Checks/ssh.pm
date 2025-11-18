@@ -2,6 +2,8 @@ package LUCCDC::Jiujitsu::Checks::ssh;
 use strictures 2;
 use parent qw(Exporter);
 
+use IPC::Open3 qw(open3);
+
 use LUCCDC::Jiujitsu::Util::Check
   qw(&load_argument &check_not_run &check_succeed :status);
 use LUCCDC::Jiujitsu::Util::Logging;
@@ -17,7 +19,16 @@ $VERSION     = 1.00;
 
 our %SSH_CHECK = (
     name   => "ssh",
-    checks => [ \&check_systemd_running, \&try_remote_login ]
+    checks => [
+        {
+            name  => "check_systemd",
+            check => \&check_systemd_running
+        },
+        {
+            name  => "try_remote_login",
+            check => \&try_remote_login
+        }
+    ]
 );
 
 sub check_systemd_running {
@@ -28,13 +39,12 @@ sub check_systemd_running {
     my $ssh_service_name = rhel_or_debian_return( "sshd", "ssh" );
 
     my $service_status = get_service_info($ssh_service_name);
-    if ( $service_status->{"ExecMainStatus"} eq "0" ) {
+    if ( $service_status->{"ActiveStatus"} eq "active" ) {
         return check_succeed(
             "Systemd service is currently running",
             {
-                "main_pid"      => $service_status->{"MainPID"} // "",
+                "main_pid"      => $service_status->{"MainPID"},
                 "running_since" => $service_status->{"ExecMainStartTimestamp"}
-                  // ""
             }
         );
     }
@@ -47,6 +57,7 @@ sub try_remote_login {
       if load_argument "skip-login";
 
     my $host = load_argument "host",     { val => "localhost" };
+    my $port = load_argument "port",     { val => 22 };
     my $user = load_argument "user",     { val => "root" };
     my $pass = load_argument "password", { val => ":STDIN:" };
 

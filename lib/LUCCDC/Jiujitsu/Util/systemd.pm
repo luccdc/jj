@@ -17,7 +17,7 @@ sub check_service {
     my $svc_info = get_service_info($service);
     my %svc_map  = %{$svc_info};
 
-    return $svc_map{"ExecMainStatus"} eq "0";
+    return $svc_map{"ActiveState"} eq "active";
 }
 
 sub get_service_info {
