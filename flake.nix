@@ -37,13 +37,18 @@
             FileGrep
             strictures
           ];
+          # Return a package and its recursive list of propagated dependencies.
+          getAllPropagatedDeps = pkg: (builtins.foldl' (l: p: l ++ getAllPropagatedDeps p ) [ pkg ] pkg.propagatedBuildInputs);
 
+          # Script to link CPAN sources to a location that can be found by apperl
           apperl-link = pkgs.writeShellScriptBin "apperl-link" ''
 rm -fr ./.apperl/nix-links && echo "Removing previous links directory..."
 mkdir -p ./.apperl/nix-links && echo "Creating links directory..."
 echo -e "Creating links to CPAN sources...\ninstall_modules entries:"
-${lib.concatMapStringsSep "\n" (p: ''ln -s ${toString p.out.src} ./.apperl/nix-links/${p.pname}-${p.version}.tar.gz
-                                     echo -e '\t".apperl/nix-links/${p.pname}-${p.version}.tar.gz"','')  perlDeps}
+${lib.concatMapStringsSep ",\n" (p: ''ln -s ${toString p.out.src} ./.apperl/nix-links/${p.pname}-${p.version}.tar.gz
+                                      echo -e '\t'\".apperl/nix-links/${p.pname}-${p.version}.tar.gz\"'')
+  (pkgs.lib.unique (builtins.foldl' (l: p: l ++ getAllPropagatedDeps p ) [] perlDeps))}
+echo -e "\n"
 '';
 
           jiujitsu = let
