@@ -3,6 +3,7 @@
 
 
 $set_environment_variables = <<SCRIPT
+dnf install -y perl
 tee "/etc/profile.d/myvars.sh" > "/dev/null" <<EOF
 export PATH="/jj/bin:$PATH"
 export PERL5LIB="/jj/lib:$PERL5LIB"
@@ -34,8 +35,8 @@ Vagrant.configure("2") do |config|
     rocky.vm.box_url = "https://vagrantboxes.lucyber.team/rocky_9.json"
     rocky.vm.provision "shell", inline: $set_environment_variables, run: "always"
     rocky.vm.synced_folder ".", "/vagrant", disabled: true
-    rocky.vm.synced_folder "./bin", "/jj/bin"
-    rocky.vm.synced_folder "./lib", "/jj/lib"
+    rocky.vm.synced_folder "./bin", "/jj/bin", type: "nfs", nfs_version: 4
+    rocky.vm.synced_folder "./lib", "/jj/lib", type: "nfs", nfs_version: 4
     rocky.vm.network "private_network", ip: "192.168.56.48"
   end
 
