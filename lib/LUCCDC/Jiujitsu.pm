@@ -11,6 +11,7 @@ use LUCCDC::Jiujitsu::Commands::stat;
 use LUCCDC::Jiujitsu::Commands::file;
 use LUCCDC::Jiujitsu::Commands::downloadshell;
 use LUCCDC::Jiujitsu::Commands::elk;
+use LUCCDC::Jiujitsu::Commands::firewall;
 
 # ABSTRACT: CLI to manage Linux
 # VERSION
@@ -30,6 +31,7 @@ my %subcommands = (
     'downloadshell' => \&LUCCDC::Jiujitsu::Commands::downloadshell::run,
     'enum'          => \&LUCCDC::Jiujitsu::Commands::enum::run,
     'file'          => \&LUCCDC::Jiujitsu::Commands::file::run,
+    'firewall'  => \&LUCCDC::Jiujitsu::Commands::firewall::run,	
     'help'          => \&help,
     'ports'         => \&LUCCDC::Jiujitsu::Commands::ports::run,
     'useradd'       => \&LUCCDC::Jiujitsu::Commands::useradd::run,
